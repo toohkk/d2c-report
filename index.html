@@ -110,7 +110,8 @@
   .btn--solid { background:var(--btn-solid); color:var(--btn-on-solid); }
   .btn--solid:hover { background:var(--btn-solid-hover); }
   .btn--solid:active { transform:scale(.98); }
-  .btn--outline { background:transparent; color:var(--t-primary); box-shadow:inset 0 0 0 1px var(--btn-border); }
+  .btn--outline { background:transparent; color:var(--t-primary); box-shadow:inset 0 0 0 var(--outline-w,1px) var(--btn-border); }
+  .btn--lg.btn--outline { --outline-w: 2px; }
   .btn--outline:hover { background:var(--btn-soft); }
   .btn--outline:active { transform:scale(.98); }
   .btn--soft { background:var(--btn-soft); color:var(--t-primary); }
@@ -121,7 +122,7 @@
   .btn--blue { background:transparent; padding:0 8px; color:var(--brand); font-size:14px; line-height:22px; }
   .btn:disabled { cursor:not-allowed; transform:none; }
   .btn--solid:disabled { background:var(--micro); color:var(--t-disabled); }
-  .btn--outline:disabled { color:var(--t-disabled); box-shadow:inset 0 0 0 1px var(--micro); background:transparent; }
+  .btn--outline:disabled { color:var(--t-disabled); box-shadow:inset 0 0 0 var(--outline-w,1px) var(--micro); background:transparent; }
   .btn--soft:disabled { background:var(--micro); color:var(--t-disabled); }
 
   pre { background:var(--bg-code); border:1px solid var(--border); border-radius:10px; padding:15px 17px; overflow-x:auto; margin-top:10px; }
@@ -235,7 +236,7 @@
     <div class="r-line"><span class="r-k">回应</span><div class="r-v">「收到，我先读取这两个节点。」</div></div>
     <div class="r-line"><span class="r-k">动作</span><div class="r-v">调用 <code>GET /v1/files/5S0zqZWqPYi567jM2Y2q2M/nodes?ids=4:3121,4:1329</code>（Header <code>X-Figma-Token</code>）；同时试 <code>/v1/files/:key/variables/local</code>；再取节点渲染图。</div></div>
     <div class="r-line"><span class="r-k">返回</span><div class="r-v">节点数据 <b>2.2 MB / HTTP 200</b>；变量接口 <b>403</b>（需 <code>file_variables:read</code> 且仅企业版）。节点上每个填充/描边/文字都带 <code>boundVariables</code>，画框带 <code>explicitVariableModes</code>：Light=<code>4:1</code>、Dark=<code>4:2</code>。</div></div>
-    <div class="r-line"><span class="r-k">关键</span><div class="r-v"><code>VariableID:4:109</code> 在 Light 画框解析为 <b>#0D0D0D</b>、Dark 画框为 <b>#F9F9F9</b> —— 同一 ID 两套值，模式可被机器判定；组件集 <code>4:5368</code> 共 <b>295 变体</b>，比 MasterGo 陈列稿多出 Inverse / Inverse-Outline / Text-* 系列。</div></div>
+    <div class="r-line"><span class="r-k">关键</span><div class="r-v"><code>VariableID:4:109</code> 在 Light 画框解析为 <b>#0D0D0D</b>、Dark 画框为 <b>#F9F9F9</b> —— 同一 ID 两套值，模式可被机器判定；组件集 <code>4:5368</code> 共 <b>295 变体</b>，比 MasterGo 陈列稿多出 Inverse / Inverse-Outline / Text-* 系列。<span class="muted">（后经前端反馈复核：示例帧里的实例已被拍平为普通 frame，全文件无 INSTANCE，见 R0）</span></div></div>
     <div class="r-line"><span class="r-k">产出</span><div class="r-v"><span class="badge ok">完成</span> <code>figma-button-light-dark/index.html</code>，与 MasterGo 版数值逐条核对一致。</div></div>
   </div>
 </div>
@@ -374,6 +375,24 @@
 <div class="part-label">Part 3 · 输出结果</div>
 
 <section>
+  <h2><span class="num">R0</span>前端反馈核对（2026-10-22 追加）</h2>
+  <p class="lead">前端在《D-161 MasterGo 与 Figma 前端视角量化对比》里对我们这套记录做了逐项实测，指出的问题逐条核对如下。凡是我方写错的，已直接改数据与实现，不保留旧版本。</p>
+  <table>
+    <thead><tr><th style="width:26%">反馈项</th><th style="width:30%">前端实测</th><th>我方核对与处理</th></tr></thead>
+    <tbody>
+      <tr><td>Outline 描边粗细</td><td>Button/Light 帧里 Lg-Full 是 2px，Demo 是 1px</td><td class="bad">确认写错。核查 4:5368：Desktop Lg 的四种宽度档全部 strokeWeight=2，Md / Sm / Xs 与 Mobile 为 1。<strong>已按尺寸分级修正</strong>（两个 Demo + 报告预览）</td></tr>
+      <tr><td>Figma 版 Demo 夜间底色</td><td>Demo 用 #0D0D0D，对照表是 rgba(13,13,13,.95)</td><td class="bad">确认写错。已改为 token 值 <code>rgba(13,13,13,.95)</code>，并在其下补黑色基底，合成后约 <code>#0C0C0C</code>，与设计画面一致</td></tr>
+      <tr><td>Demo 的 Lg 是否等于 Lg-Full</td><td>待确认</td><td>不等于。我方 Lg 对应 <strong>Lg-Hug</strong>（内边距 40）；Lg-Full 是定宽 500、内边距 12 的拉伸档。两者描边同为 2px，规格表已补注</td></tr>
+      <tr><td>Figma 组件实例 0 个</td><td>示例全部变成普通 frame</td><td class="bad">已独立核实：两棵节点树内 INSTANCE 计数为 <strong>0</strong>（295 个 COMPONENT 定义仍在）。此前「componentProperties 直对 props」的判断<strong>不成立，已更正</strong></td></tr>
+      <tr><td>Figma 是部分迁移</td><td>76 页只迁了 29 页</td><td class="warn">采纳。此前称「同一份规范的镜像」不准确，已改为「迁移副本，token 值一致但结构与示例不完整」</td></tr>
+      <tr><td>Magic MCP 的三处错误</td><td>间距 31（实为 40）、圆角缺失、深色值错</td><td>属 MasterGo 的另一条通道（Magic MCP）。我方用的是客户端 MCP，结论不冲突；已在差异表补一行说明两套 MCP 结果不同</td></tr>
+      <tr><td>我方 Demo 尺寸 / 颜色逐项核对</td><td>16 个规格按钮高度、圆角、字号、日夜颜色全部一致</td><td class="ok">与前端结论一致，无需修改</td></tr>
+    </tbody>
+  </table>
+  <div class="note bad"><b>结论</b>：前端指出的 2 处实现错误成立，另有 2 处表述过强（组件属性、文件完整度）一并更正。这些更正已同步到两个 Demo、本页与 PDF。</div>
+</section>
+
+<section>
   <h2><span class="num">R1</span>三个问题的结论</h2>
   <table>
     <thead><tr><th style="width:40%">问题</th><th>结论</th></tr></thead>
@@ -440,7 +459,8 @@
       <tr><td>Xs</td><td>32px</td><td>16px</td><td>12px / 18px</td><td>999px</td><td>8px</td></tr>
     </tbody>
   </table>
-  <p style="margin-top:12px">字体 <strong>PingFang SC Medium（500）</strong>，内容居中。变体轴：Variant（Solid / Outline / Soft-Solid）× State（Default / Hover / Pressed / Disabled / Loading）× Size（Lg / Md / Sm / Xs）× Breakpoint（Desktop / Mobile）。</p>
+  <p style="margin-top:12px"><strong>描边</strong>：Outline 变体 Desktop Lg 为 <strong>2px</strong>（Lg-Hug / Lg-1 / Lg-2 / Lg-Full 全部 2px），Desktop Md / Sm / Xs 与 Mobile 全部为 <strong>1px</strong>。<strong>宽度档</strong>：本表内边距对应 Hug 档（Lg 40px）；另有 Full 定宽档（宽 500px、内边距 12px）与 1 / 2 定宽档，几何不同、描边规则相同。</p>
+  <p style="margin-top:8px">字体 <strong>PingFang SC Medium（500）</strong>，内容居中。变体轴：Variant（Solid / Outline / Soft-Solid）× State（Default / Hover / Pressed / Disabled / Loading）× Size（Lg / Md / Sm / Xs）× Breakpoint（Desktop / Mobile）。</p>
 </section>
 
 <section>
@@ -510,8 +530,9 @@
       <tr><td>变量全量表</td><td class="ok">一次拿全（171 变量）</td><td class="bad">需企业版权限</td></tr>
       <tr><td>节点 token 引用</td><td class="bad">无，只有解析色值</td><td class="ok">有 boundVariables</td></tr>
       <tr><td>模式表达</td><td>变量级双值</td><td class="ok">节点级模式 ID + 分模式解析</td></tr>
-      <tr><td>组件变体</td><td>data-variant-* 属性</td><td class="ok">componentProperties 直对 props</td></tr>
-      <tr><td>代码生成</td><td class="ok">内置多框架</td><td>无内置</td></tr>
+      <tr><td>组件变体</td><td>data-variant-* 属性，实例完好</td><td class="warn">组件定义 295 个、变体名可解析；但示例帧内实例已被拍平为普通 frame（全文件 0 个 INSTANCE），页面级拿不到 componentProperties</td></tr>
+      <tr><td>代码生成</td><td class="ok">内置多框架（客户端 MCP 导出为固定色值，不带 token 名）</td><td>无内置</td></tr>
+      <tr><td>MCP 通道差异</td><td class="warn">两套：Magic MCP 的间距（报 31 实为 40）、圆角、深色值有误；客户端 MCP 数据准确</td><td>一条（Figma MCP / REST）</td></tr>
       <tr><td>回写画布</td><td class="ok">支持</td><td class="bad">只读</td></tr>
       <tr><td>国内可用性</td><td class="ok">直连稳定</td><td class="bad">需代理 / WAF 拦</td></tr>
     </tbody>
