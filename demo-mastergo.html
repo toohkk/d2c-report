@@ -157,14 +157,16 @@
   /* --- Outline：文字色 Text/Primary --- */
   .btn--outline {
     background: transparent; color: var(--text-primary);
-    box-shadow: inset 0 0 0 1px var(--outline-border-default);
+    box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-default);
   }
+  /* Desktop Lg 描边 = 2px（Figma 4:5368 实测 strokeWeight），其余尺寸 1px */
+  .btn--lg.btn--outline { --outline-w: 2px; }
   .btn--outline:hover {
     background: var(--outline-bg-hover);
-    box-shadow: inset 0 0 0 1px var(--outline-border-hover);
+    box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-hover);
   }
   .btn--outline:active {
-    box-shadow: inset 0 0 0 1px var(--outline-border-pressed); transform: scale(0.98);
+    box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-pressed); transform: scale(0.98);
   }
 
   /* --- Soft-Solid：文字色 Text/Primary --- */
@@ -177,7 +179,7 @@
   .btn--solid:disabled { background: var(--solid-bg-disabled); color: var(--text-disabled); }
   .btn--outline:disabled {
     background: transparent; color: var(--text-disabled);
-    box-shadow: inset 0 0 0 1px var(--outline-border-disabled);
+    box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-disabled);
   }
   .btn--soft:disabled { background: var(--soft-bg-disabled); color: var(--text-disabled); }
 
