@@ -18,7 +18,7 @@
      ============================================================ */
   :root,
   [data-theme="light"] {
-    --bg-page: #f9f9f9;          /* Light 画框底 */
+    --bg-page: #fefefe;          /* Background/Page 4:35 日间值 */
     --bg-card: #fefefe;          /* VariableID:4:35 @Light */
     --on-dark-bg: #0d0d0d;       /* Inverse 演示条 */
 
@@ -51,7 +51,7 @@
   }
 
   [data-theme="dark"] {
-    --bg-page: #0d0d0d;
+    --bg-page: rgba(13,13,13,.95);   /* Background/Page 4:35 夜间值 */
     --bg-card: #1f1f1f;
 
     /* Solid（Dark 画框解析值） */
@@ -79,6 +79,7 @@
     --text-disabled:  rgba(254,254,254,.25);  /* 4:49 */
   }
 
+  html { background: #000; }  /* 夜间页面底是 95% 黑，需黑色基底叠出设计色 */
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -139,10 +140,12 @@
 
   .btn--outline {
     background: transparent; color: var(--text-primary);
-    box-shadow: inset 0 0 0 1px var(--outline-border);
+    box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border);
   }
-  .btn--outline:hover { background: var(--outline-bg-hover); box-shadow: inset 0 0 0 1px var(--outline-border-hover); }
-  .btn--outline:active { box-shadow: inset 0 0 0 1px var(--outline-border-hover); transform: scale(.98); }
+  /* Desktop Lg 描边 = 2px（Figma 4:5368 实测 strokeWeight），其余尺寸 1px */
+  .btn--lg.btn--outline { --outline-w: 2px; }
+  .btn--outline:hover { background: var(--outline-bg-hover); box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-hover); }
+  .btn--outline:active { box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-hover); transform: scale(.98); }
 
   .btn--soft { background: var(--soft-bg-default); color: var(--text-primary); }
   .btn--soft:hover { background: var(--soft-bg-hover); }
@@ -160,7 +163,7 @@
 
   .btn:disabled { cursor: not-allowed; transform: none; }
   .btn--solid:disabled { background: var(--solid-bg-disabled); color: var(--text-disabled); }
-  .btn--outline:disabled { background: transparent; color: var(--text-disabled); box-shadow: inset 0 0 0 1px var(--outline-border-disabled); }
+  .btn--outline:disabled { background: transparent; color: var(--text-disabled); box-shadow: inset 0 0 0 var(--outline-w, 1px) var(--outline-border-disabled); }
   .btn--soft:disabled { background: var(--soft-bg-disabled); color: var(--text-disabled); }
   .btn--text:disabled { color: var(--text-tertiary); background: transparent; }
 
@@ -180,10 +183,10 @@
   .btn--inverse:hover { background: rgba(254,254,254,.8); }
   .btn--inverse:active { background: #fefefe; transform: scale(.98); }
   .btn--inverse:disabled { background: #ededed; color: #cccccc; }
-  .btn--inv-outline { background: transparent; color: #fefefe; box-shadow: inset 0 0 0 1px rgba(254,254,254,.8); }
+  .btn--inv-outline { background: transparent; color: #fefefe; box-shadow: inset 0 0 0 var(--outline-w, 1px) rgba(254,254,254,.8); }
   .btn--inv-outline:hover { background: rgba(254,254,254,.15); }
   .btn--inv-outline:active { transform: scale(.98); }
-  .btn--inv-outline:disabled { color: rgba(254,254,254,.35); box-shadow: inset 0 0 0 1px rgba(254,254,254,.8); }
+  .btn--inv-outline:disabled { color: rgba(254,254,254,.35); box-shadow: inset 0 0 0 var(--outline-w, 1px) rgba(254,254,254,.8); }
 
   #toast {
     position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(16px);
