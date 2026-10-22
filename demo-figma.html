@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Button · Light / Dark 模式验证（Figma 设计规范）</title>
+<style>
+  /* ============================================================
+     数据源：Figma REST API（文件 设计规范-优化中 / key 5S0zqZWqPYi567jM2Y2q2M）
+     节点 4:1329「Light&Dark」：Light 画框(mode VariableCollectionId:4:3→4:1)
+       与 Dark 画框(→4:2)。同一变量在两个画框中解析出不同值：
+       例 VariableID:4:109（Solid/Bg/Default）→ Light #0D0D0D / Dark #F9F9F9
+     组件集 4:5368 Button：295 个变体
+       Variant: Solid/Outline/Soft-Solid/Inverse/Inverse-Outline/
+                Text-Tertiary/Text-Primary/Text-Secondary/Text-Blue
+       Size: Lg(56/px40/16·24) Md(48/32/14·22) Sm(40/20/14·22) Xs(32/16/12·18)
+       State: Default/Hover/Pressed/Disabled/Loading
+     ============================================================ */
+  :root,
+  [data-theme="light"] {
+    --bg-page: #f9f9f9;          /* Light 画框底 */
+    --bg-card: #fefefe;          /* VariableID:4:35 @Light */
+    --on-dark-bg: #0d0d0d;       /* Inverse 演示条 */
+
+    /* Solid */
+    --solid-bg-default:  #0d0d0d;            /* 4:109 */
+    --solid-bg-hover:    rgba(13,13,13,.8);  /* 4:112 */
+    --solid-bg-pressed:  #0d0d0d;            /* 4:113 */
+    --solid-bg-disabled: #ededed;            /* 4:114 */
+    --solid-bg-loading:  #ededed;            /* 4:115 */
+    --text-on-solid:     #fefefe;            /* 4:138 Text/Inverse */
+
+    /* Outline */
+    --outline-border:        #0d0d0d;        /* 4:127 */
+    --outline-border-hover:  #0d0d0d;
+    --outline-border-disabled:#ededed;       /* 4:130 */
+    --outline-bg-hover:      #ededed;        /* 4:117 */
+
+    /* Soft-Solid */
+    --soft-bg-default:  #ededed;             /* 4:121 */
+    --soft-bg-hover:    #cccccc;             /* 4:122 */
+    --soft-bg-pressed:  #ededed;             /* 4:123 */
+    --soft-bg-disabled: #ededed;             /* 4:124 */
+
+    /* Text 按钮 */
+    --text-primary:   #0d0d0d;               /* 4:30 */
+    --text-secondary: #404040;               /* 4:31 */
+    --text-tertiary:  #888888;               /* 4:32 */
+    --text-blue:      #0066cc;               /* 4:44 */
+    --text-disabled:  #cccccc;               /* 4:49 */
+  }
+
+  [data-theme="dark"] {
+    --bg-page: #0d0d0d;
+    --bg-card: #1f1f1f;
+
+    /* Solid（Dark 画框解析值） */
+    --solid-bg-default:  #f9f9f9;             /* 4:109 → #F9F9F9 */
+    --solid-bg-hover:    rgba(254,254,254,.8);/* 4:112 */
+    --solid-bg-pressed:  #f9f9f9;             /* 4:113 */
+    --solid-bg-disabled: rgba(254,254,254,.25);/* 4:114 */
+    --solid-bg-loading:  rgba(254,254,254,.25);/* 4:115 */
+    --text-on-solid:     #0d0d0d;             /* 4:138 → #0D0D0D */
+
+    --outline-border:        rgba(254,254,254,.8);
+    --outline-border-hover:  rgba(254,254,254,.8);
+    --outline-border-disabled: rgba(254,254,254,.25);
+    --outline-bg-hover:      rgba(254,254,254,.15); /* 4:117 */
+
+    --soft-bg-default:  rgba(254,254,254,.25);/* 4:121 */
+    --soft-bg-hover:    rgba(254,254,254,.35);/* 4:122 */
+    --soft-bg-pressed:  rgba(254,254,254,.25);/* 4:123 */
+    --soft-bg-disabled: rgba(254,254,254,.25);/* 4:124 */
+
+    --text-primary:   #fefefe;                /* 4:30 */
+    --text-secondary: rgba(254,254,254,.8);   /* 4:31 */
+    --text-tertiary:  rgba(254,254,254,.6);   /* 4:32 */
+    --text-blue:      #0066cc;                /* 4:44 */
+    --text-disabled:  rgba(254,254,254,.25);  /* 4:49 */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "PingFang SC", "PingFangSC-Regular", -apple-system, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background .3s cubic-bezier(.25,.1,.25,1), color .3s cubic-bezier(.25,.1,.25,1);
+  }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 8px; }
+  h1 { font-size: 20px; font-weight: 500; line-height: 30px; }
+  .meta { font-size: 12px; line-height: 18px; opacity: .55; margin-bottom: 40px; }
+
+  .theme-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; flex: none; }
+  .theme-switch .label { font-size: 14px; line-height: 22px; }
+  .switch-track {
+    width: 44px; height: 26px; border-radius: 999px;
+    background: var(--soft-bg-default);
+    position: relative; transition: background .2s;
+    border: 1px solid var(--outline-border);
+  }
+  .switch-track::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--solid-bg-default);
+    transition: transform .25s cubic-bezier(.25,.1,.25,1), background .2s;
+  }
+  [data-theme="dark"] .switch-track::after { transform: translateX(18px); }
+
+  .card { background: var(--bg-card); border-radius: 12px; padding: 32px; margin-bottom: 24px; }
+  .card h2 { font-size: 16px; font-weight: 500; line-height: 24px; margin-bottom: 4px; }
+  .card .desc { font-size: 12px; line-height: 18px; opacity: .55; margin-bottom: 24px; }
+  .row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .row:last-child { margin-bottom: 0; }
+  .row .tag { width: 64px; flex: none; font-size: 12px; line-height: 18px; opacity: .55; }
+
+  /* ================= Button 组件 ================= */
+  .btn {
+    display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+    border: none; border-radius: 999px;
+    font-family: inherit; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    transition: background .2s cubic-bezier(.25,.1,.25,1), box-shadow .2s, color .2s, transform .1s;
+  }
+  .btn:focus-visible { outline: 2px solid var(--outline-border); outline-offset: 2px; }
+
+  .btn--lg { height: 56px; padding: 0 40px; font-size: 16px; line-height: 24px; }
+  .btn--md { height: 48px; padding: 0 32px; font-size: 14px; line-height: 22px; }
+  .btn--sm { height: 40px; padding: 0 20px; font-size: 14px; line-height: 22px; }
+  .btn--xs { height: 32px; padding: 0 16px; font-size: 12px; line-height: 18px; }
+
+  .btn--solid { background: var(--solid-bg-default); color: var(--text-on-solid); }
+  .btn--solid:hover { background: var(--solid-bg-hover); }
+  .btn--solid:active { background: var(--solid-bg-pressed); transform: scale(.98); }
+
+  .btn--outline {
+    background: transparent; color: var(--text-primary);
+    box-shadow: inset 0 0 0 1px var(--outline-border);
+  }
+  .btn--outline:hover { background: var(--outline-bg-hover); box-shadow: inset 0 0 0 1px var(--outline-border-hover); }
+  .btn--outline:active { box-shadow: inset 0 0 0 1px var(--outline-border-hover); transform: scale(.98); }
+
+  .btn--soft { background: var(--soft-bg-default); color: var(--text-primary); }
+  .btn--soft:hover { background: var(--soft-bg-hover); }
+  .btn--soft:active { background: var(--soft-bg-pressed); transform: scale(.98); }
+
+  .btn--text { background: transparent; padding-left: 8px; padding-right: 8px; }
+  .btn--text.t-primary   { color: var(--text-primary); }
+  .btn--text.t-primary:hover   { color: var(--text-secondary); }
+  .btn--text.t-secondary { color: var(--text-secondary); }
+  .btn--text.t-secondary:hover { color: var(--text-tertiary); }
+  .btn--text.t-tertiary  { color: var(--text-tertiary); }
+  .btn--text.t-blue      { color: var(--text-blue); }
+  .btn--text.t-blue:hover      { text-decoration: underline; }
+  .btn--text:active { opacity: .85; transform: scale(.98); }
+
+  .btn:disabled { cursor: not-allowed; transform: none; }
+  .btn--solid:disabled { background: var(--solid-bg-disabled); color: var(--text-disabled); }
+  .btn--outline:disabled { background: transparent; color: var(--text-disabled); box-shadow: inset 0 0 0 1px var(--outline-border-disabled); }
+  .btn--soft:disabled { background: var(--soft-bg-disabled); color: var(--text-disabled); }
+  .btn--text:disabled { color: var(--text-tertiary); background: transparent; }
+
+  .btn.is-loading { pointer-events: none; }
+  .btn.is-loading .spinner {
+    width: 1em; height: 1em; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Inverse 变体：用于深色表面，值不随主题翻转（设计稿固定值） */
+  .dark-strip { background: var(--on-dark-bg); border-radius: 12px; padding: 32px; margin-bottom: 24px; }
+  .dark-strip h2 { color: #fefefe; }
+  .dark-strip .desc { color: rgba(254,254,254,.55); }
+  .btn--inverse { background: #fefefe; color: #0d0d0d; }
+  .btn--inverse:hover { background: rgba(254,254,254,.8); }
+  .btn--inverse:active { background: #fefefe; transform: scale(.98); }
+  .btn--inverse:disabled { background: #ededed; color: #cccccc; }
+  .btn--inv-outline { background: transparent; color: #fefefe; box-shadow: inset 0 0 0 1px rgba(254,254,254,.8); }
+  .btn--inv-outline:hover { background: rgba(254,254,254,.15); }
+  .btn--inv-outline:active { transform: scale(.98); }
+  .btn--inv-outline:disabled { color: rgba(254,254,254,.35); box-shadow: inset 0 0 0 1px rgba(254,254,254,.8); }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(16px);
+    background: var(--solid-bg-default); color: var(--text-on-solid);
+    font-size: 14px; line-height: 22px; padding: 10px 20px; border-radius: 999px;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <h1>Button · 日间 / 夜间模式验证（Figma 版）</h1>
+      <div class="theme-switch" id="themeSwitch" role="switch" aria-checked="false" tabindex="0" title="一键切换 Light / Dark">
+        <span class="label" id="themeLabel">日间 Light</span>
+        <span class="switch-track"></span>
+      </div>
+    </div>
+    <p class="meta">数据源：Figma REST API 实测 —— 文件《设计规范-优化中》，节点 4:1329（Light&Dark）+ 组件集 4:5368（295 变体）。同一变量 ID 在 Light / Dark 画框内由 API 解析出两套值，全部照抄，非推测。</p>
+
+    <div class="card">
+      <h2>Solid / Outline / Soft-Solid</h2>
+      <p class="desc">Light：黑70 底白字 · Dark：白10 底黑字（Text/Inverse 随模式翻转）；Outline 与 Soft 文字色 Text/Primary 翻转</p>
+      <div class="row"><span class="tag">Lg 56</span>
+        <button class="btn btn--lg btn--solid">确定</button>
+        <button class="btn btn--lg btn--outline">确定</button>
+        <button class="btn btn--lg btn--soft">确定</button>
+        <button class="btn btn--lg btn--solid" disabled>确定</button>
+      </div>
+      <div class="row"><span class="tag">Md 48</span>
+        <button class="btn btn--md btn--solid">确定</button>
+        <button class="btn btn--md btn--outline">确定</button>
+        <button class="btn btn--md btn--soft">确定</button>
+        <button class="btn btn--md btn--solid" disabled>确定</button>
+      </div>
+      <div class="row"><span class="tag">Sm 40</span>
+        <button class="btn btn--sm btn--solid">确定</button>
+        <button class="btn btn--sm btn--outline">确定</button>
+        <button class="btn btn--sm btn--soft">确定</button>
+        <button class="btn btn--sm btn--solid" disabled>确定</button>
+      </div>
+      <div class="row"><span class="tag">Xs 32</span>
+        <button class="btn btn--xs btn--solid">确定</button>
+        <button class="btn btn--xs btn--outline">确定</button>
+        <button class="btn btn--xs btn--soft">确定</button>
+        <button class="btn btn--xs btn--solid" disabled>确定</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Text 文本按钮（Tertiary / Primary / Secondary / Blue）</h2>
+      <p class="desc">无边框无底色；Blue 是链接色 #0066CC，两个模式下不翻转</p>
+      <div class="row">
+        <button class="btn btn--md btn--text t-tertiary">文本按钮</button>
+        <button class="btn btn--md btn--text t-primary">文本按钮</button>
+        <button class="btn btn--md btn--text t-secondary">文本按钮</button>
+        <button class="btn btn--md btn--text t-blue">文本按钮</button>
+        <button class="btn btn--md btn--text t-primary" disabled>文本按钮</button>
+      </div>
+    </div>
+
+    <div class="dark-strip">
+      <h2>Inverse / Inverse-Outline（深色表面专用）</h2>
+      <p class="desc">固定白系取值，不随日夜间翻转；此条背景恒为深色</p>
+      <div class="row">
+        <button class="btn btn--md btn--inverse">确定</button>
+        <button class="btn btn--md btn--inv-outline">确定</button>
+        <button class="btn btn--md btn--inverse" disabled>确定</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>交互说明</h2>
+      <p class="desc">所有按钮均为真实交互组件，非静态陈列</p>
+      <div class="row">
+        <button class="btn btn--md btn--solid demo">Hover 我 / 点击触发 Loading</button>
+        <button class="btn btn--md btn--outline demo">点击触发 Loading</button>
+        <button class="btn btn--md btn--soft demo">点击触发 Loading</button>
+        <button class="btn btn--md btn--text t-blue demo">点击触发 Loading</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+  const root = document.documentElement;
+  const switchEl = document.getElementById('themeSwitch');
+  const labelEl = document.getElementById('themeLabel');
+  const toast = document.getElementById('toast');
+  let toastTimer;
+
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    switchEl.setAttribute('aria-checked', String(t === 'dark'));
+    labelEl.textContent = t === 'dark' ? '夜间 Dark' : '日间 Light';
+  }
+
+  function toggleTheme() {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    showToast(next === 'dark' ? '已切换到夜间 Dark 模式' : '已切换到日间 Light 模式');
+  }
+
+  switchEl.addEventListener('click', toggleTheme);
+  switchEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTheme(); }
+  });
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  document.querySelectorAll('.btn.demo').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('is-loading')) return;
+      const original = btn.textContent;
+      btn.classList.add('is-loading');
+      btn.innerHTML = '<span class="spinner"></span>';
+      setTimeout(() => {
+        btn.classList.remove('is-loading');
+        btn.textContent = original;
+      }, 1500);
+    });
+  });
+</script>
+<a href="index.html" style="position:fixed;left:20px;bottom:20px;z-index:99;font-family:-apple-system,PingFang SC,sans-serif;font-size:12.5px;line-height:1;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.9);color:#0d0d0d;border:1px solid rgba(0,0,0,.12);box-shadow:0 4px 16px rgba(0,0,0,.12);text-decoration:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">← 返回报告</a>
+</body>
+</html>

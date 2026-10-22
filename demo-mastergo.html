@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Button · Light / Dark 模式验证（MasterGo 设计规范）</title>
+<style>
+  /* ============================================================
+     MasterGo 变量映射（文件：设计规范-优化中 / documentId 90715591055486）
+     每个 token 均来自 get_variables 返回的真实 mode 值，非推测。
+     ============================================================ */
+  :root,
+  [data-theme="light"] {
+    /* Primitive */
+    --neutral-0:   #fefefe;   /* Primitive/Neutral/0   */
+    --neutral-70:  #0d0d0d;   /* Primitive/Neutral/70  */
+    --neutral-40:  #cccccc;   /* Primitive/Neutral/40  */
+    --neutral-30:  #ededed;   /* Primitive/Neutral/30  */
+    --neutral-10:  #f9f9f9;   /* Primitive/Neutral/10  */
+
+    /* Semantic（Light 模式取值） */
+    --bg-page:            #fefefe;                    /* Background/Page        0    */
+    --bg-elevated:        #fefefe;                    /* Background/Elevated    0    */
+    --text-primary:       var(--neutral-70);          /* Text/Primary           黑70 */
+    --text-inverse:       var(--neutral-0);           /* Text/Inverse/Primary   0    */
+    --text-disabled:      var(--neutral-40);          /* Text/Disabled          黑40 */
+
+    --solid-bg-default:   var(--neutral-70);          /* Button/Solid/Bg/Default    黑70   */
+    --solid-bg-hover:     rgba(13, 13, 13, 0.8);      /* Button/Solid/Bg/Hover      黑80%  */
+    --solid-bg-pressed:   var(--neutral-70);          /* Button/Solid/Bg/Pressed    黑70   */
+    --solid-bg-disabled:  var(--neutral-30);          /* Button/Solid/Bg/Disabled   黑30   */
+    --solid-bg-loading:   var(--neutral-30);          /* Button/Solid/Bg/Loading    黑30   */
+
+    --outline-border-default:  var(--neutral-70);     /* Button/Outline/Border/Default  黑70 */
+    --outline-border-hover:    var(--neutral-70);     /* Button/Outline/Border/Hover    黑70 */
+    --outline-border-pressed:  var(--neutral-70);     /* Button/Outline/Border/Pressed  黑70 */
+    --outline-border-disabled: var(--neutral-30);     /* Button/Outline/Border/Disabled 黑30 */
+    --outline-bg-hover:        var(--neutral-30);     /* Button/Outline/Bg/Hover        黑30 */
+
+    --soft-bg-default:    var(--neutral-30);          /* Button/Soft-Solid/Bg/Default  黑30 */
+    --soft-bg-hover:      var(--neutral-40);          /* Button/Soft-Solid/Bg/Hover    黑40 */
+    --soft-bg-pressed:    var(--neutral-30);          /* Button/Soft-Solid/Bg/Pressed  黑30 */
+    --soft-bg-disabled:   var(--neutral-30);          /* Button/Soft-Solid/Bg/Disabled 黑30 */
+  }
+
+  [data-theme="dark"] {
+    /* Semantic（Dark 模式取值） */
+    --bg-page:            rgba(13, 13, 13, 0.95);     /* Background/Page        95%黑  */
+    --bg-elevated:        #404040;                    /* Background/Elevated    60     */
+    --text-primary:       var(--neutral-0);           /* Text/Primary           白0    */
+    --text-inverse:       var(--neutral-70);          /* Text/Inverse/Primary   70     */
+    --text-disabled:      rgba(254, 254, 254, 0.25);  /* Text/Disabled          白25%  */
+
+    --solid-bg-default:   var(--neutral-10);          /* Button/Solid/Bg/Default    白10   */
+    --solid-bg-hover:     rgba(254, 254, 254, 0.8);   /* Button/Solid/Bg/Hover      白80%  */
+    --solid-bg-pressed:   var(--neutral-10);          /* Button/Solid/Bg/Pressed    白10   */
+    --solid-bg-disabled:  rgba(254, 254, 254, 0.25);  /* Button/Solid/Bg/Disabled   白25%  */
+    --solid-bg-loading:   rgba(254, 254, 254, 0.25);  /* Button/Solid/Bg/Loading    白25%  */
+
+    --outline-border-default:  rgba(254, 254, 254, 0.8);  /* Button/Outline/Border/Default  白80% */
+    --outline-border-hover:    rgba(254, 254, 254, 0.8);  /* Button/Outline/Border/Hover    白80% */
+    --outline-border-pressed:  rgba(254, 254, 254, 0.8);  /* Button/Outline/Border/Pressed  白80% */
+    --outline-border-disabled: rgba(254, 254, 254, 0.25); /* Button/Outline/Border/Disabled 白25% */
+    --outline-bg-hover:        rgba(254, 254, 254, 0.15); /* Button/Outline/Bg/Hover        白15% */
+
+    --soft-bg-default:    rgba(254, 254, 254, 0.25);  /* Button/Soft-Solid/Bg/Default  白25% */
+    --soft-bg-hover:      rgba(254, 254, 254, 0.35);  /* Button/Soft-Solid/Bg/Hover    白35% */
+    --soft-bg-pressed:    rgba(254, 254, 254, 0.25);  /* Button/Soft-Solid/Bg/Pressed  白25% */
+    --soft-bg-disabled:   rgba(254, 254, 254, 0.25);  /* Button/Soft-Solid/Bg/Disabled 白25% */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "PingFang SC", "PingFangSC-Regular", -apple-system, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), color 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* ---------- 顶栏：标题 + 一键切换 ---------- */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; margin-bottom: 8px;
+  }
+  h1 { font-size: 20px; font-weight: 500; line-height: 30px; }
+  .meta { font-size: 12px; line-height: 18px; opacity: 0.55; margin-bottom: 40px; }
+
+  .theme-switch {
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none; flex: none;
+  }
+  .theme-switch .label { font-size: 14px; line-height: 22px; }
+  .switch-track {
+    width: 44px; height: 26px; border-radius: 999px;
+    background: var(--soft-bg-default);
+    position: relative; transition: background 0.2s;
+    border: 1px solid var(--outline-border-default);
+  }
+  .switch-track::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--solid-bg-default);
+    transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), background 0.2s;
+  }
+  [data-theme="dark"] .switch-track::after { transform: translateX(18px); }
+
+  /* ---------- 卡片分区 ---------- */
+  .card {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .card h2 { font-size: 16px; font-weight: 500; line-height: 24px; margin-bottom: 4px; }
+  .card .desc { font-size: 12px; line-height: 18px; opacity: 0.55; margin-bottom: 24px; }
+
+  .row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .row:last-child { margin-bottom: 0; }
+  .row .tag {
+    width: 64px; flex: none; font-size: 12px; line-height: 18px; opacity: 0.55;
+  }
+
+  /* ============================================================
+     Button 组件（variant: Solid / Outline / Soft-Solid）
+     尺寸规格来自组件集真实节点：
+       Lg h56 px40 字16/24 · Md h48 px32 字14/22
+       Sm h40 px20 字14/22 · Xs h32 px16 字12/18
+     ============================================================ */
+  .btn {
+    /* 公共 */
+    display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+    border: none; border-radius: 999px;   /* Radius/Full */
+    font-family: inherit; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+                border-color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+                color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+                transform 0.1s;
+  }
+  .btn:focus-visible { outline: 2px solid var(--outline-border-default); outline-offset: 2px; }
+
+  /* 尺寸 */
+  .btn--lg { height: 56px; padding: 0 40px; font-size: 16px; line-height: 24px; }
+  .btn--md { height: 48px; padding: 0 32px; font-size: 14px; line-height: 22px; }
+  .btn--sm { height: 40px; padding: 0 20px; font-size: 14px; line-height: 22px; }
+  .btn--xs { height: 32px; padding: 0 16px; font-size: 12px; line-height: 18px; }
+
+  /* --- Solid：文字色 Text/Inverse/Primary --- */
+  .btn--solid { background: var(--solid-bg-default); color: var(--text-inverse); }
+  .btn--solid:hover  { background: var(--solid-bg-hover); }
+  .btn--solid:active { background: var(--solid-bg-pressed); transform: scale(0.98); }
+
+  /* --- Outline：文字色 Text/Primary --- */
+  .btn--outline {
+    background: transparent; color: var(--text-primary);
+    box-shadow: inset 0 0 0 1px var(--outline-border-default);
+  }
+  .btn--outline:hover {
+    background: var(--outline-bg-hover);
+    box-shadow: inset 0 0 0 1px var(--outline-border-hover);
+  }
+  .btn--outline:active {
+    box-shadow: inset 0 0 0 1px var(--outline-border-pressed); transform: scale(0.98);
+  }
+
+  /* --- Soft-Solid：文字色 Text/Primary --- */
+  .btn--soft { background: var(--soft-bg-default); color: var(--text-primary); }
+  .btn--soft:hover  { background: var(--soft-bg-hover); }
+  .btn--soft:active { background: var(--soft-bg-pressed); transform: scale(0.98); }
+
+  /* --- Disabled --- */
+  .btn:disabled { cursor: not-allowed; transform: none; }
+  .btn--solid:disabled { background: var(--solid-bg-disabled); color: var(--text-disabled); }
+  .btn--outline:disabled {
+    background: transparent; color: var(--text-disabled);
+    box-shadow: inset 0 0 0 1px var(--outline-border-disabled);
+  }
+  .btn--soft:disabled { background: var(--soft-bg-disabled); color: var(--text-disabled); }
+
+  /* --- Loading：点击任意可用按钮可触发 --- */
+  .btn.is-loading { pointer-events: none; }
+  .btn.is-loading .spinner {
+    width: 1em; height: 1em; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(16px);
+    background: var(--solid-bg-default); color: var(--text-inverse);
+    font-size: 14px; line-height: 22px; padding: 10px 20px; border-radius: 999px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <h1>Button · 日间 / 夜间模式验证</h1>
+      <div class="theme-switch" id="themeSwitch" role="switch" aria-checked="false" tabindex="0"
+           title="一键切换 Light / Dark">
+        <span class="label" id="themeLabel">日间 Light</span>
+        <span class="switch-track"></span>
+      </div>
+    </div>
+    <p class="meta">数据源：MasterGo《设计规范-优化中》变量表（7 个 collection / 3 个 mode / 171 个变量），颜色均取自 Light / Dark 模式真实值，非人工推测。</p>
+
+    <div class="card">
+      <h2>Solid 实底按钮</h2>
+      <p class="desc">Light：黑70 底 / 白字 · Dark：白10 底 / 黑70 字（文字色 Text/Inverse/Primary 随模式翻转）</p>
+      <div class="row"><span class="tag">Lg 56</span>
+        <button class="btn btn--lg btn--solid">确定</button>
+        <button class="btn btn--lg btn--outline">确定</button>
+        <button class="btn btn--lg btn--soft">确定</button>
+        <button class="btn btn--lg btn--solid" disabled>确定</button>
+      </div>
+      <div class="row"><span class="tag">Md 48</span>
+        <button class="btn btn--md btn--solid">确定</button>
+        <button class="btn btn--md btn--outline">确定</button>
+        <button class="btn btn--md btn--soft">确定</button>
+        <button class="btn btn--md btn--solid" disabled>确定</button>
+      </div>
+      <div class="row"><span class="tag">Sm 40</span>
+        <button class="btn btn--sm btn--solid">确定</button>
+        <button class="btn btn--sm btn--outline">确定</button>
+        <button class="btn btn--sm btn--soft">确定</button>
+        <button class="btn btn--sm btn--solid" disabled>确定</button>
+      </div>
+      <div class="row"><span class="tag">Xs 32</span>
+        <button class="btn btn--xs btn--solid">确定</button>
+        <button class="btn btn--xs btn--outline">确定</button>
+        <button class="btn btn--xs btn--soft">确定</button>
+        <button class="btn btn--xs btn--solid" disabled>确定</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>交互说明</h2>
+      <p class="desc">所有按钮均为真实交互组件，非静态陈列</p>
+      <div class="row">
+        <button class="btn btn--md btn--solid demo">Hover 我 / 点击触发 Loading</button>
+        <button class="btn btn--md btn--outline demo">点击触发 Loading</button>
+        <button class="btn btn--md btn--soft demo">点击触发 Loading</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+  const root = document.documentElement;
+  const switchEl = document.getElementById('themeSwitch');
+  const labelEl = document.getElementById('themeLabel');
+  const toast = document.getElementById('toast');
+  let toastTimer;
+
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    switchEl.setAttribute('aria-checked', String(t === 'dark'));
+    labelEl.textContent = t === 'dark' ? '夜间 Dark' : '日间 Light';
+  }
+
+  function toggleTheme() {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    showToast(next === 'dark' ? '已切换到夜间 Dark 模式' : '已切换到日间 Light 模式');
+  }
+
+  switchEl.addEventListener('click', toggleTheme);
+  switchEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTheme(); }
+  });
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  // 点击演示按钮：进入 Loading 态 1.5s，验证 Loading 变量
+  document.querySelectorAll('.btn.demo').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('is-loading')) return;
+      const original = btn.textContent;
+      btn.classList.add('is-loading');
+      btn.innerHTML = '<span class="spinner"></span>';
+      setTimeout(() => {
+        btn.classList.remove('is-loading');
+        btn.textContent = original;
+      }, 1500);
+    });
+  });
+</script>
+<a href="index.html" style="position:fixed;left:20px;bottom:20px;z-index:99;font-family:-apple-system,PingFang SC,sans-serif;font-size:12.5px;line-height:1;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.9);color:#0d0d0d;border:1px solid rgba(0,0,0,.12);box-shadow:0 4px 16px rgba(0,0,0,.12);text-decoration:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">← 返回报告</a>
+</body>
+</html>
