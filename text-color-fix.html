@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文字颜色取错变量 · 复核与更正</title>
+<style>
+:root{
+  --paper:#FCFCFA;--paper2:#F4F4F0;--ink:#16191C;--ink2:#3A4046;--muted:#6C737A;
+  --rule:#E3E2DD;--rule2:#EDECE7;--bad:#C13B2E;--good:#2C4A6E;--warn:#8A5A1B;
+  --mono:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.8;margin:0;padding:0 1.5rem 6rem}
+.doc{max-width:840px;margin:0 auto;display:flex;flex-direction:column;gap:1.3rem}
+header{padding:4rem 0 2rem;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:.9rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+h1{font-size:clamp(1.8rem,4.5vw,2.5rem);line-height:1.3;margin:0;font-weight:600;letter-spacing:.01em}
+.meta{display:flex;flex-wrap:wrap;gap:.35rem 1.4rem;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:0;padding:0;list-style:none}
+.meta b{color:var(--ink2);font-weight:500}
+section{display:flex;flex-direction:column;gap:1rem;padding-top:2.6rem}
+h2{font-size:1.35rem;line-height:1.4;margin:0;padding-bottom:.6rem;border-bottom:1px solid var(--rule);display:flex;align-items:baseline;gap:.8rem;font-weight:600}
+h2 .num{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;color:var(--bad);flex:none}
+p{margin:0;color:var(--ink2)}
+strong{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:.85em;background:var(--paper2);border:1px solid var(--rule2);padding:.04em .32em;overflow-wrap:anywhere}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem;margin:.4rem 0}
+.kpi{background:var(--paper2);padding:.9rem 1rem;border-left:3px solid var(--rule)}
+.kpi.bad{border-left-color:var(--bad)}
+.kpi.good{border-left-color:var(--good)}
+.kpi.warn{border-left-color:var(--warn)}
+.kpi b{display:block;font-size:1.6rem;line-height:1.2;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.78rem;color:var(--muted)}
+.verdict{display:flex;gap:.7rem;align-items:baseline;background:var(--paper2);border-left:3px solid var(--good);padding:.7rem 1rem}
+.verdict.bad{border-left-color:var(--bad)}
+.verdict.warn{border-left-color:var(--warn)}
+.verdict .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);flex:none}
+.verdict p{color:var(--ink);font-size:.94rem;line-height:1.7}
+.tw{overflow-x:auto;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%;min-width:34rem;font-size:.9rem;line-height:1.65}
+th,td{text-align:left;padding:.65rem 1rem .65rem 0;vertical-align:top;border-bottom:1px solid var(--rule2)}
+tbody tr:last-child td{border-bottom:none}
+th{font-family:var(--mono);font-weight:500;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding-top:.75rem;padding-bottom:.75rem}
+td:first-child{color:var(--ink);font-weight:500}
+.mono{font-family:var(--mono);font-size:.82rem}
+.mk{font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.mk.yes{color:var(--bad)}
+.mk.no{color:var(--good)}
+.nw{white-space:nowrap}
+pre{margin:0;background:var(--paper2);border:1px solid var(--rule);padding:.95rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.7;color:var(--ink)}
+pre .c{color:var(--muted)}
+pre .bad{color:var(--bad)}
+pre .ok{color:var(--good)}
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.6rem;color:var(--ink2)}
+ul.list>li{padding-left:1.1rem;position:relative}
+ul.list>li::before{content:"";position:absolute;left:0;top:.78em;width:5px;height:1px;background:var(--muted)}
+footer{padding-top:2.4rem;border-top:1px solid var(--rule);font-family:var(--mono);font-size:.76rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:.4rem 1.4rem}
+@media(max-width:640px){.kpis{grid-template-columns:minmax(0,1fr)}body{font-size:15px;padding:0 1.1rem 4rem}}
+</style>
+</head>
+<body>
+<main class="doc">
+
+<header>
+<p class="eyebrow">回复前端 · 变量名方案第 2 轮</p>
+<h1>文字颜色取错变量 · 已确认并修正</h1>
+<ul class="meta">
+  <li><b>文件</b> 设计规范-优化中 · 90715591055486</li>
+  <li><b>复核帧</b> Button 38623:91236 · HomeSearch 38963:053705</li>
+  <li><b>复核日期</b> 2026-10-26</li>
+  <li><b>结论</b> 代码 1 处错误确认 · 设计稿 2 类问题待处理</li>
+</ul>
+</header>
+
+<div class="kpis">
+  <div class="kpi bad"><b>3 / 3</b><span>前端给的三个数字，我方独立复核全部一致</span></div>
+  <div class="kpi good"><b>已修</b><span>脚本加 role 字段，新增文字颜色专项审计</span></div>
+  <div class="kpi warn"><b>2 类</b><span>设计稿侧问题，需我方判断处理</span></div>
+</div>
+
+<section>
+<h2><span class="num">01</span>复核结果：数字逐项对上</h2>
+<div class="verdict bad"><span class="tag">确认</span><p>你说的完全正确。我此前在《变量名获取方式-给前端》里给的生成端写法 <code>node._token || styles[node.fill].token</code> 对文字节点是错的，照它写代码，Button 页 193 个文字节点夜间会取到错误颜色。</p></div>
+<div class="tw"><table>
+<thead><tr><th>帧</th><th>文字节点</th><th>两处绑定不同</th><th>夜间会错</th></tr></thead>
+<tbody>
+<tr><td>Button 规范页</td><td class="mono">310</td><td class="mono">254</td><td class="mk yes">193</td></tr>
+<tr><td>HomeSearch</td><td class="mono">291</td><td class="mono">36</td><td class="mk yes">24</td></tr>
+</tbody></table></div>
+<p>与你的表相比：Button 的 <code>310 / 254 / 193</code> 三个数完全一致；HomeSearch 的 <code>291 / 36</code> 一致，夜间会错一项你给 <b>24</b>、我最初算 <b>13</b>，差 11 个——差的正是你 05 节指出的那 11 个节点（<code>fill</code> 绑语义、<code>textColor</code> 绑原始色）。按「渲染看 textColor、与设计意图在夜间不一致」这个正确口径，<b>24 是对的，我的 13 偏窄</b>。</p>
+<p>口径差异的另一处：Button 页有 12 个文字节点的 <code>_token</code>/<code>fill</code> 本身拿不到名字。你不计入，我把它们算进了「不同」。所以我的全口径是 266，与你一致的口径是 254。</p>
+</section>
+
+<section>
+<h2><span class="num">02</span>为什么我此前的自检没抓到</h2>
+<div class="verdict warn"><span class="tag">方法漏洞</span><p>我做的一致性校验只能证明「名字和值自洽」，证明不了「用对了属性」。这两件事是两个维度。</p></div>
+<p>我原先报的「988 条引用 100% 一致」，验的是「变量的定义值 = 该属性在节点上的渲染值」。这条对 <code>fill</code> 和 <code>textColor</code> <b>各自</b>都成立，所以它会把两处绑定不同、但各自都自洽的节点全部判为通过。同理，我说的「575 个节点 <code>_token</code> 与 <code>fill</code> 两路解析 0 冲突」也只是在比这两个字段，从未与 <code>textColor</code> 对照。</p>
+<p>正确做法需要三类校验，我此前只做了第一类：</p>
+<ul class="list">
+<li><b>值一致性</b>（已做）：变量的定义值 = 节点渲染值，用于抓 override / detach。</li>
+<li><b>属性选用</b>（缺失，本次补上）：文字节点必须比对 <code>_token||fill</code> 与 <code>textColor</code> 是否指向同一变量，不同则以 <code>textColor</code> 为准。</li>
+<li><b>模式完整性</b>（部分做）：Light 与 Dark 都要落值，只比 Light 看不出问题——本案两处绑定在日间的色值是相同的。</li>
+</ul>
+<p>第 3 条正是这个问题隐蔽的原因：<code>Primitive/Neutral/0</code> 与 <code>Text/Inverse/Primary</code> 日间都是 <code>#FEFEFE</code>，肉眼和截图都分辨不出来，只有切到夜间才暴露。</p>
+</section>
+
+<section>
+<h2><span class="num">03</span>已修正的内容</h2>
+<div class="verdict"><span class="tag">已交付</span><p>取数脚本已改，产出多了一个 <code>role</code> 字段和一份文字颜色专项审计，错误路径从「不易察觉」变成「不可能误用」。</p></div>
+<p>核心改动是给每条颜色记录标注用途，而不是只标属性名：</p>
+<pre><span class="c">// 旧：一行取到底，文字节点必然取到 fill 的绑定</span>
+<span class="bad">token = node._token || styles[node.fill]?.token</span>
+
+<span class="c">// 新：按节点类型分流，文字只认 textColor，分段逐段取</span>
+<span class="ok">if (node.type === 'TEXT') {
+  for (const seg of node.textColor ?? []) {
+    const token = styles[seg.color]?.token ?? report('MISS', node.id, 'textColor')
+  }
+} else {
+  const token = node._token || styles[node.fill]?.token ?? report('MISS', node.id, 'fill')
+}</span></pre>
+<p>脚本产出同步变化：</p>
+<ul class="list">
+<li><code>node-token-map.json</code> 每条记录新增 <code>role</code>：<code>render</code> 参与渲染可直接用，<code>decoy</code> 是文字节点上 <code>fill</code>/<code>_token</code> 的绑定、不可直接使用。本次 Button 页 <code>render 703 / decoy 310</code>，取错会立刻被这个字段拦住。</li>
+<li>新增 <code>text-color-audit.json</code>：逐节点给出 <code>decoyToken</code>、<code>renderToken</code>、<code>mismatch</code>，可直接当回归基线用。</li>
+<li>变体契约表里文字色的取值本就走 <code>textColor</code>（<code>Solid / Desktop / Lg-Hug / Default</code> 的文字是 <code>Text/Inverse/Primary</code>），这部分此前是对的，无需改动。</li>
+</ul>
+</section>
+
+<section>
+<h2><span class="num">04</span>05 节：设计稿侧要分两类处理</h2>
+<div class="verdict warn"><span class="tag">需我方处理</span><p>这 11 个节点确实是设计稿的问题，我这边确认要改。但同一份数据里还有一类更大的情况（两处都绑原始色），性质不同，不能一起改。</p></div>
+
+<p><b>第一类 · fill 绑语义、textColor 绑原始色，日间同值（HomeSearch 11 个）</b></p>
+<p>这四个状态的 <code>fill</code> 全部绑了正确的语义变量，<code>textColor</code> 却绑在 primitive 上，且两处日间值完全相同。这说明本意就是语义变量，<code>textColor</code> 是漏绑。</p>
+<div class="tw"><table>
+<thead><tr><th>节点</th><th>文字</th><th>fill（应为）</th><th>textColor（现状）</th><th>fill 夜间</th><th>textColor 夜间</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td class="mono nw">38963:057433</td><td class="nw">视频</td><td class="mono">Text/Tertiary</td><td class="mono">Primitive/Neutral/50</td><td class="mono">rgba(254,254,254,0.6)</td><td class="mono">#888888</td><td class="mk yes">夜间不变色</td></tr>
+<tr><td class="mono nw">38963:057424</td><td class="nw">视频</td><td class="mono">Text/Secondary</td><td class="mono">Primitive/Neutral/60</td><td class="mono">rgba(254,254,254,0.8)</td><td class="mono">#404040</td><td class="mk yes">夜间不变色</td></tr>
+<tr><td class="mono nw">38963:057415</td><td class="nw">视频</td><td class="mono">Text/Primary</td><td class="mono">Primitive/Neutral/70</td><td class="mono">#fefefe</td><td class="mono">#0d0d0d</td><td class="mk yes">夜间不变色</td></tr>
+<tr><td class="mono nw">38963:057406</td><td class="nw">视频</td><td class="mono">Text/Disabled</td><td class="mono">Primitive/Neutral/40</td><td class="mono">rgba(254,254,254,0.25)</td><td class="mono">#cccccc</td><td class="mk yes">夜间不变色</td></tr>
+</tbody></table></div>
+<p>处理意见：<b>改</b>。<code>textColor</code> 改绑与 <code>fill</code> 相同的语义变量，Light 模式一个像素都不会变，只补上原本缺失的 Dark 值。这是纯收益修复，无回归风险。我会在规范里改，改完给你节点清单。</p>
+
+<p style="margin-top:.6rem"><b>第二类 · 两处都绑原始色、日夜同值（Button 79 个 / HomeSearch 210 个）</b></p>
+<p>这类节点 <code>fill</code> 和 <code>textColor</code> 都绑在 primitive 上，而且这些 primitive 本身就是日夜同值，意味着<b>它们在夜间根本不会变色</b>。分布很集中：</p>
+<div class="tw"><table>
+<thead><tr><th>帧</th><th class="nw">数量</th><th>涉及变量</th></tr></thead>
+<tbody>
+<tr><td>Button</td><td class="mono nw">79</td><td class="mono">Primitive/Neutral/70 ×33 · Primitive/Neutral/0 ×33 · Primitive/Neutral/40 ×11 · Primitive/Blue/60 ×2</td></tr>
+<tr><td>HomeSearch</td><td class="mono nw">210</td><td class="mono">Primitive/Neutral/70 ×120 · Color/Primitive/Neutral/0 ×1 · Primitive/Neutral/0 ×1 · Primitive/Neutral/50 ×88</td></tr>
+</tbody></table></div>
+<p>这<b>不是绑错变量</b>，而是这批文字从未做语义化。HomeSearch 一页 291 个文字节点里有 210 个属于这一类，占比 72%——不像个别疏漏，更像这页是照 Light 稿做的、还没做 Dark 适配。</p>
+<p>所以要先回答一个问题：<b>这些页面是否在 Dark 模式下上线？</b>在，就必须逐处改绑语义变量（<code>Primitive/Neutral/70 → Text/Primary</code>、<code>Neutral/50 → Text/Tertiary</code>）；不在，就不用改，但要在规范里显式标「Light only」，避免以后被当成缺陷反复提单。这个判断我这边来定，定完给你结论和清单。</p>
+</section>
+
+<section>
+<h2><span class="num">05</span>06 节：谢谢更正</h2>
+<p>业务页变量名的事，你主动更正了上次的判断，省了我一轮排查。我复核了那 40 处：<code>TY 通用色/70 0D-主文本</code>、<code>Divider_index_1/Divider</code> 这类确实不在本文件 <code>get_variables</code> 的 171 个变量里，是团队色板与分割线样式，属另一套体系。</p>
+<p>另外确认你说的前缀规则：本文件 <code>Color</code> 是集合名，颜色变量之间无重名，去掉 <code>Color/</code> 前缀比对是安全的。但这是本文件的性质，不是通用规律——换文件仍需先做一次重名检查，再决定能否去前缀。</p>
+</section>
+
+<section>
+<h2><span class="num">06</span>替换掉我此前那三条约定</h2>
+<p>文档里原来那三条有一处是错的（第 1 条把文字节点也归到了 <code>fill</code>）。请以这三条为准：</p>
+<ul class="list">
+<li><b>1 名字只从绑定字段取，且要选对属性。</b>文字节点读 <code>node.textColor[].color → styles[ref].token</code>，按段处理；非文字节点读 <code>node._token</code> 或 <code>styles[node.fill].token</code>；描边单独读 <code>strokeColor</code>。</li>
+<li><b>2 拿不到就报错，不许降级。</b>既不许回落到色值反查，也不许回落到另一个属性的 token。MISS 必须带节点 id 与属性名抛出。</li>
+<li><b>3 校验要三类齐全。</b>值一致性（抓 override）、属性选用（文字必须比对 fill 与 textColor）、模式完整性（Light / Dark 都要落值）。只做第一类，本案这种「日间同色、夜间不同」的错误会全部漏过。</li>
+</ul>
+<div class="verdict"><span class="tag">补充</span><p>你 07 节给的 <code>check_text_color.py</code> 我照跑了，输出与我这边一致。改完后「两处绑定不一致」应为 0 这一条，我加进了脚本的自检：<code>mismatch</code> 不为 0 直接 exit 1，可挂 CI。</p></div>
+</section>
+
+<footer>
+<span>复核数据 token-map/textcolor-final-audit.json</span>
+<span>脚本 token-map/mg-token-extract/extract.mjs</span>
+<span>审计 token-map/text-color-audit.json</span>
+</footer>
+
+</main>
+</body>
+</html>
