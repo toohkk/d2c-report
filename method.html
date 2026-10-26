@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>变量名是怎么拿到的 · 实现方式说明</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:400 14px/1.7 -apple-system,"PingFang SC","Helvetica Neue",sans-serif;color:#0D0D0D;background:#F7F7F7}
+.wrap{max-width:1040px;margin:0 auto;padding:40px 28px 90px}
+h1{font-size:26px;font-weight:500;margin:0 0 8px;letter-spacing:-.3px}
+.sub{color:#6B6B6B;font-size:13px;margin-bottom:26px}
+.card{background:#fff;border:1px solid #E6E6E6;border-radius:12px;padding:22px 24px;margin-bottom:18px}
+.card h2{font-size:15px;font-weight:500;margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid #F0F0F0}
+.card h2 span{float:right;font-weight:400;color:#8A8A8A;font-size:12px}
+.meta{display:grid;grid-template-columns:118px 1fr;gap:6px 16px;font-size:13px}
+.meta dt{color:#8A8A8A}
+.meta dd{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;word-break:break-all}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi div{background:#FAFAFA;border:1px solid #EEE;border-radius:10px;padding:16px;text-align:center}
+.kpi b{display:block;font-size:25px;font-weight:500;line-height:1.2;color:#0066CC}
+.kpi b.ok{color:#1D9E75}
+.kpi b.warn{color:#C2410C}
+.kpi i{font-style:normal;font-size:12px;color:#8A8A8A}
+p{margin:0 0 12px}
+p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#F4F4F4;padding:1px 5px;border-radius:4px}
+pre{margin:0 0 12px;background:#0D0D0D;color:#E8E8E8;border-radius:9px;padding:15px 17px;overflow:auto;
+    font:400 12px/1.75 ui-monospace,Menlo,monospace}
+pre .c{color:#7A7A7A}
+pre .k{color:#7DB5FF}
+pre .s{color:#B7E1A1}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-weight:500;color:#8A8A8A;padding:8px 10px;border-bottom:1px solid #EEE;font-size:12px;
+   position:sticky;top:0;background:#fff}
+td{padding:8px 10px;border-bottom:1px solid #F5F5F5;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.num{font-family:ui-monospace,Menlo,monospace;color:#0066CC;font-weight:500}
+.tk{font-family:ui-monospace,Menlo,monospace;color:#0066CC;font-size:11.5px}
+.vv{font-family:ui-monospace,Menlo,monospace;color:#8A8A8A;font-size:11px}
+.na{color:#CCC}
+.chip{display:inline-block;background:#EAF2FB;color:#185FA5;border-radius:5px;padding:2px 7px;margin:2px 4px 2px 0;
+      font-family:ui-monospace,Menlo,monospace;font-size:11px}
+.chip.g{background:#F0F0F0;color:#555}
+.note{background:#FFF9F5;border:1px solid #F6D8C4;border-radius:9px;padding:14px 16px;font-size:13px;margin-bottom:12px}
+.note b{color:#C2410C}
+.okbox{background:#F6FBF8;border:1px solid #CFE9DD;border-radius:9px;padding:14px 16px;font-size:13px}
+.okbox b{color:#1D9E75}
+ul.clean{list-style:none;margin:0;padding:0}
+ul.clean li{padding:9px 0;border-bottom:1px solid #F5F5F5;font-size:13px}
+ul.clean li:last-child{border-bottom:none}
+ul.clean li b{font-weight:500}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:4px;margin-right:8px;
+     font-family:ui-monospace,Menlo,monospace}
+.tag.p0{background:#FDECEA;color:#B3261E}
+.tag.p1{background:#FFF4E5;color:#B26A00}
+.tag.p2{background:#F0F0F0;color:#666}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0}
+.steps li{counter-increment:s;position:relative;padding:0 0 18px 34px;border-left:1px solid #EEE;margin-left:11px}
+.steps li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps li::before{content:counter(s);position:absolute;left:-11px;top:0;width:22px;height:22px;border-radius:50%;
+  background:#0D0D0D;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+.steps h4{margin:0 0 6px;font-size:13px;font-weight:500}
+.steps p{margin:0 0 8px;font-size:12.5px;color:#555}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.two,.kpi{grid-template-columns:1fr 1fr}}
+.foot{color:#AAA;font-size:12px;text-align:center;margin-top:26px}
+</style></head><body><div class="wrap">
+
+<h1>变量名是怎么拿到的</h1>
+<div class="sub">不靠色值反查，直接读设计稿里的绑定字段 · 给前端的技术说明</div>
+
+<div class="card">
+<h2>本次取数对象</h2>
+<dl class="meta">
+<dt>设计文件</dt><dd>MasterGo 90715591055486 ·「设计规范-优化中」</dd>
+<dt>图层</dt><dd>38623:91236（Button 组件规范页）</dd>
+<dt>取数通道</dt><dd>@mastergo/magic-mcp → getDsl（stdio JSON-RPC）</dd>
+<dt>不需要</dt><dd>不需要打开客户端、不需要滚动画布、不受页面锁限制</dd>
+<dt>脚本</dt><dd>token-map/mg-token-extract/extract.mjs</dd>
+<dt>产出</dt><dd>node-token-map.json · variant-token-table.json · value-to-token.json · dsl-raw.json</dd>
+</dl>
+</div>
+
+<div class="card">
+<h2>一句话原理<span>为什么这条路能成</span></h2>
+<p>设计稿里每个带颜色的地方，引擎早就知道它绑定的是哪个变量。以前拿不到，是因为<strong>用的接口不回传绑定字段</strong>；换到 <code>getDsl</code> 后，绑定字段和解析值<strong>同时返回</strong>，前端要的名字由文件直接给出，不存在推算。</p>
+<pre><span class="c">// getDsl 返回的样式表，一条 paint 长这样</span>
+<span class="s">"paint_38575:81966"</span>: {
+  <span class="k">"value"</span>: [<span class="s">"#0D0D0D"</span>],          <span class="c">// 解析后的色值（当前模式）</span>
+  <span class="k">"token"</span>: <span class="s">"Button/Solid/Bg/Default"</span>  <span class="c">// ← 设计稿真实绑定的变量名</span>
+}</pre>
+<p>节点上还多给了一个直接字段：<code>node._token</code> 与 <code>node._color</code> 成对出现，一个节点一条，连 paint 引用都不用查。</p>
+</div>
+
+<div class="card">
+<h2>调用链<span>5 步，纯 stdio，无界面依赖</span></h2>
+<ol class="steps">
+<li><h4>拉起 magic-mcp 子进程</h4>
+<p><code>npx -y @mastergo/magic-mcp@latest --token=mg_xxx --url=https://mastergo.com --no-prefix</code><br>
+<code>--url</code> 文档写“可选”，实际不传会报 <code>无效的URL格式: 。</code>（冒号后为空），源码里是 <code>new URL("")</code> 抛错。<code>--no-prefix</code> 是为了避免工具名带 <code>mcp__</code> 前缀被客户端丢弃。</p></li>
+
+<li><h4>MCP 握手</h4>
+<p>发 <code>initialize</code>（protocolVersion 2024-11-05）→ 收响应 → 发 <code>notifications/initialized</code>。<br>
+工具清单共 12 个：<code>getDsl</code> / <code>getMeta</code> / <code>getDesignSections</code> / <code>getD2c</code> / <code>getComponentLink</code> / <code>extractSvg</code> …</p></li>
+
+<li><h4>调一次 getDsl</h4>
+<pre>{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{
+  <span class="k">"name"</span>:<span class="s">"getDsl"</span>,
+  <span class="k">"arguments"</span>:{"fileId":<span class="s">"90715591055486"</span>,
+               "layerId":<span class="s">"38623:91236"</span>,
+               "format":<span class="s">"json"</span>}}}</pre>
+<p>返回约 1.1MB，结构只有三段：<code>styles</code>（70 条样式）/ <code>nodes</code>（节点树）/ <code>components</code>。</p></li>
+
+<li><h4>递归节点树，抓所有 paint 引用</h4>
+<p>paint 引用在三种形态里出现，必须都抓：<br>
+① <code>fill: "paint_x"</code> 字符串 · ② <code>strokeColor: "paint_x"</code> · ③ <code>textColor: [{start,end,color:"paint_x"}]</code> 分段数组。<br>
+只抓第 ① 种会漏掉文字与描边（本次漏 425 条）。</p></li>
+
+<li><h4>用引用去 styles 查 token，落表</h4>
+<p><code>styles[ref].token</code> 命中即变量名；未命中的标 <code>NO_TOKEN</code> 而不是静默给色值——这条是底线，静默降级正是“给 <code>#0071E3</code> 却应该给 <code>Primitive/Blue/50</code>”的病根。</p></li>
+</ol>
+</div>
+
+<div class="card">
+<h2>DSL 里可用的四个字段<span>互相印证，不是单一来源</span></h2>
+<table>
+<tr><th style="width:210px">字段</th><th style="width:150px">含义</th><th>样例</th></tr>
+<tr><td class="mono">node._token</td><td>节点自身填充的变量名</td><td class="tk">Button/Solid/Bg/Default</td></tr>
+<tr><td class="mono">node._color</td><td>同节点同属性的解析值</td><td class="mono">#0D0D0D</td></tr>
+<tr><td class="mono">node.fill → styles[ref]</td><td>paint 引用 → 值 + 名字</td><td class="mono">paint_38575:81966</td></tr>
+<tr><td class="mono">node.strokeColor → styles</td><td>描边</td><td class="mono">paint_38614:78140</td></tr>
+<tr><td class="mono">node.textColor[].color</td><td>文字颜色（按字符区间分段）</td><td class="mono">[{start:0,end:2,color:"paint_x"}]</td></tr>
+<tr><td class="mono">node.componentInfo.properties</td><td>变体四轴</td><td class="mono">{Variant:Solid, Breakpoint:Desktop, Size:Lg-Hug, State:Default}</td></tr>
+<tr><td class="mono">node.flexContainerInfo</td><td>间距与内边距</td><td class="mono">{gap:"8px", padding:"0px 40px"}</td></tr>
+</table>
+<p style="margin-top:12px"><strong>交叉验证：</strong>575 个节点同时存在 <code>_token</code> 与 <code>fill</code> 引用，两种路径解析出的变量名<strong>完全一致，0 处冲突</strong>。说明这不是某个字段的偶然值，而是同一份绑定的两种呈现。</p>
+</div>
+
+<div class="card">
+<h2>实测覆盖率<span>Button 页全量</span></h2>
+<div class="kpi">
+<div><b>1013</b><i>paint 引用总数</i></div>
+<div><b class="ok">988</b><i>解析出变量名 97.5%%</i></div>
+<div><b class="warn">25</b><i>无变量名</i></div>
+<div><b>43</b><i>去重变量名</i></div>
+</div>
+<p style="margin-top:14px;font-size:13px">按属性拆分：<code>fill 588</code> · <code>textColor 310</code> · <code>strokeColor 115</code>。样式缺失 0 条——说明所有 paint 引用都能在 <code>styles</code> 里找到，没有断链。</p>
+<p style="font-size:13px">43 个变量名全集（可直接对照你们现有 token 表）：</p>
+<div style="max-height:112px;overflow:auto;border:1px solid #F0F0F0;border-radius:8px;padding:10px"><span class="chip">Alpha/Blue/60-25</span><span class="chip">Alpha/Blue/60-50</span><span class="chip">Alpha/White/0</span><span class="chip">Alpha/White/15</span><span class="chip">Alpha/White/25</span><span class="chip">Alpha/White/35</span><span class="chip">Alpha/White/80</span><span class="chip">Button/Outline/Bg/Default</span><span class="chip">Button/Outline/Bg/Disabled</span><span class="chip">Button/Outline/Bg/Hover</span><span class="chip">Button/Outline/Bg/Loading</span><span class="chip">Button/Outline/Bg/Pressed</span><span class="chip">Button/Outline/Border/Default</span><span class="chip">Button/Outline/Border/Disabled</span><span class="chip">Button/Outline/Border/Hover</span><span class="chip">Button/Outline/Border/Loading</span><span class="chip">Button/Outline/Border/Pressed</span><span class="chip">Button/Soft-Solid/Bg/Default</span><span class="chip">Button/Soft-Solid/Bg/Disabled</span><span class="chip">Button/Soft-Solid/Bg/Hover</span><span class="chip">Button/Soft-Solid/Bg/Pressed</span><span class="chip">Button/Solid/Bg/Default</span><span class="chip">Button/Solid/Bg/Disabled</span><span class="chip">Button/Solid/Bg/Hover</span><span class="chip">Button/Solid/Bg/Loading</span><span class="chip">Button/Solid/Bg/Pressed</span><span class="chip">Color/Alpha/Black/50</span><span class="chip">Color/Primitive/Blue/50</span><span class="chip">Color/Primitive/Neutral/0</span><span class="chip">Color/Primitive/Neutral/40</span><span class="chip">Color/Primitive/Neutral/50</span><span class="chip">Color/Primitive/Neutral/60</span><span class="chip">Color/Primitive/Neutral/70</span><span class="chip">Primitive/Blue/60</span><span class="chip">Primitive/Neutral/0</span><span class="chip">Primitive/Neutral/30</span><span class="chip">Primitive/Neutral/40</span><span class="chip">Primitive/Neutral/70</span><span class="chip">Text/Disabled</span><span class="chip">Text/Inverse/Primary</span><span class="chip">Text/Primary</span><span class="chip">Text/Secondary</span><span class="chip">Text/Tertiary</span></div>
+</div>
+
+<div class="card">
+<h2>顺手拿到的变体矩阵<span>354 个组件/实例节点 → 299 个唯一组合</span></h2>
+<p>节点名里编码了变体四轴（<code>Variant[a0]=Solid,Breakpoint[a0]=Desktop,Size[a3]=Lg-Hug,State[a0]=Default</code>），<code>componentInfo.properties</code> 又把四轴结构化给出来。把每条组合的 <code>_token</code> 汇总，就得到<strong>真实绑定</strong>的变体契约表——不是人工约定，不需要人去补。</p>
+<p style="font-size:12.5px">轴值：<b>Variant</b> 9（9 个按钮变体 + 文字变体）· <b>Breakpoint</b> 2 · <b>Size</b> 13 · <b>State</b> 5。</p>
+<div class="note"><b>一个关键规律：</b>token 只随 <code>Variant × State</code> 变化，与 <code>Size</code> / <code>Breakpoint</code> 无关。299 条组合因此压成 <strong>45 条（9 变体 × 5 状态）</strong>，且这 45 条在不同尺寸、不同断点下的 token <strong>零冲突</strong>（已逐条比对）。下表列出 6 个按钮视觉变体 × 5 状态 = 30 条。</div>
+<div style="max-height:520px;overflow:auto;border:1px solid #F0F0F0;border-radius:8px">
+<table>
+<tr><th>Variant</th><th>State</th><th>背景</th><th>文字</th><th>描边</th></tr>
+<tr><td class=mono><b>Solid</b></td><td>Default</td><td><span class="tk">Button/Solid/Bg/Default</span><br><span class="vv">#0D0D0D</span></td><td><span class="tk">Text/Inverse/Primary</span><br><span class="vv">#FEFEFE</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Solid</b></td><td>Hover</td><td><span class="tk">Button/Solid/Bg/Hover</span><br><span class="vv">rgba(13, 13, 13, 0.8)</span></td><td><span class="tk">Text/Inverse/Primary</span><br><span class="vv">#FEFEFE</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Solid</b></td><td>Pressed</td><td><span class="tk">Button/Solid/Bg/Pressed</span><br><span class="vv">#0D0D0D</span></td><td><span class="tk">Text/Inverse/Primary</span><br><span class="vv">#FEFEFE</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Solid</b></td><td>Disabled</td><td><span class="tk">Button/Solid/Bg/Disabled</span><br><span class="vv">#EDEDED</span></td><td><span class="tk">Text/Disabled</span><br><span class="vv">#CCCCCC</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Solid</b></td><td>Loading</td><td><span class="tk">Button/Solid/Bg/Loading</span><br><span class="vv">#EDEDED</span></td><td class="na">—</td><td class="na">—</td></tr>
+<tr><td class=mono><b>Outline</b></td><td>Default</td><td><span class="tk">Button/Outline/Bg/Default</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td><span class="tk">Text/Primary</span><br><span class="vv">#0D0D0D</span></td><td><span class="tk">Button/Outline/Border/Default</span><br><span class="vv">#0D0D0D</span></td></tr>
+<tr><td class=mono><b>Outline</b></td><td>Hover</td><td><span class="tk">Button/Outline/Bg/Hover</span><br><span class="vv">#EDEDED</span></td><td><span class="tk">Text/Primary</span><br><span class="vv">#0D0D0D</span></td><td><span class="tk">Button/Outline/Border/Hover</span><br><span class="vv">#0D0D0D</span></td></tr>
+<tr><td class=mono><b>Outline</b></td><td>Pressed</td><td><span class="tk">Button/Outline/Bg/Pressed</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td><span class="tk">Text/Primary</span><br><span class="vv">#0D0D0D</span></td><td><span class="tk">Button/Outline/Border/Pressed</span><br><span class="vv">#0D0D0D</span></td></tr>
+<tr><td class=mono><b>Outline</b></td><td>Disabled</td><td><span class="tk">Button/Outline/Bg/Disabled</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td><span class="tk">Text/Disabled</span><br><span class="vv">#CCCCCC</span></td><td><span class="tk">Button/Outline/Border/Disabled</span><br><span class="vv">#EDEDED</span></td></tr>
+<tr><td class=mono><b>Outline</b></td><td>Loading</td><td><span class="tk">Alpha/White/0</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td class="na">—</td><td><span class="tk">Button/Outline/Border/Loading</span><br><span class="vv">#EDEDED</span></td></tr>
+<tr><td class=mono><b>Soft-Solid</b></td><td>Default</td><td><span class="tk">Button/Soft-Solid/Bg/Default</span><br><span class="vv">#EDEDED</span></td><td><span class="tk">Text/Primary</span><br><span class="vv">#0D0D0D</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Soft-Solid</b></td><td>Hover</td><td><span class="tk">Button/Soft-Solid/Bg/Hover</span><br><span class="vv">#CCCCCC</span></td><td><span class="tk">Text/Primary</span><br><span class="vv">#0D0D0D</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Soft-Solid</b></td><td>Pressed</td><td><span class="tk">Button/Soft-Solid/Bg/Pressed</span><br><span class="vv">#EDEDED</span></td><td><span class="tk">Text/Primary</span><br><span class="vv">#0D0D0D</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Soft-Solid</b></td><td>Disabled</td><td><span class="tk">Button/Soft-Solid/Bg/Disabled</span><br><span class="vv">#EDEDED</span></td><td><span class="tk">Text/Disabled</span><br><span class="vv">#CCCCCC</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Soft-Solid</b></td><td>Loading</td><td><span class="tk">Button/Solid/Bg/Loading</span><br><span class="vv">#EDEDED</span></td><td class="na">—</td><td class="na">—</td></tr>
+<tr><td class=mono><b>Inverse</b></td><td>Default</td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td><td><span class="tk">Primitive/Neutral/70</span><br><span class="vv">#0D0D0D</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Inverse</b></td><td>Hover</td><td><span class="tk">Alpha/White/80</span><br><span class="vv">rgba(254, 254, 254, 0.8)</span></td><td><span class="tk">Primitive/Neutral/70</span><br><span class="vv">#0D0D0D</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Inverse</b></td><td>Pressed</td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td><td><span class="tk">Primitive/Neutral/70</span><br><span class="vv">#0D0D0D</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Inverse</b></td><td>Disabled</td><td><span class="tk">Primitive/Neutral/30</span><br><span class="vv">#EDEDED</span></td><td><span class="tk">Primitive/Neutral/40</span><br><span class="vv">#CCCCCC</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Inverse</b></td><td>Loading</td><td><span class="tk">Primitive/Neutral/30</span><br><span class="vv">#EDEDED</span></td><td class="na">—</td><td class="na">—</td></tr>
+<tr><td class=mono><b>Inverse-Outline</b></td><td>Default</td><td><span class="tk">Alpha/White/0</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td></tr>
+<tr><td class=mono><b>Inverse-Outline</b></td><td>Hover</td><td><span class="tk">Alpha/White/15</span><br><span class="vv">rgba(254, 254, 254, 0.15)</span></td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td></tr>
+<tr><td class=mono><b>Inverse-Outline</b></td><td>Pressed</td><td><span class="tk">Alpha/White/0</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td><td><span class="tk">Primitive/Neutral/0</span><br><span class="vv">#FEFEFE</span></td></tr>
+<tr><td class=mono><b>Inverse-Outline</b></td><td>Disabled</td><td><span class="tk">Alpha/White/0</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td><span class="tk">Alpha/White/35</span><br><span class="vv">rgba(254, 254, 254, 0.35)</span></td><td><span class="tk">Alpha/White/35</span><br><span class="vv">rgba(254, 254, 254, 0.35)</span></td></tr>
+<tr><td class=mono><b>Inverse-Outline</b></td><td>Loading</td><td><span class="tk">Alpha/White/0</span><br><span class="vv">rgba(254, 254, 254, 0)</span></td><td class="na">—</td><td><span class="tk">Alpha/White/35</span><br><span class="vv">rgba(254, 254, 254, 0.35)</span></td></tr>
+<tr><td class=mono><b>Text-Blue</b></td><td>Default</td><td class="na">—</td><td><span class="tk">Primitive/Blue/60</span><br><span class="vv">#0066CC</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Text-Blue</b></td><td>Hover</td><td class="na">—</td><td><span class="tk">Alpha/Blue/60-50</span><br><span class="vv">rgba(0, 102, 204, 0.5)</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Text-Blue</b></td><td>Pressed</td><td class="na">—</td><td><span class="tk">Primitive/Blue/60</span><br><span class="vv">#0066CC</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Text-Blue</b></td><td>Disabled</td><td class="na">—</td><td><span class="tk">Alpha/Blue/60-25</span><br><span class="vv">rgba(0, 102, 204, 0.25)</span></td><td class="na">—</td></tr>
+<tr><td class=mono><b>Text-Blue</b></td><td>Loading</td><td class="na">—</td><td><span class="tk">Alpha/Blue/60-25</span><br><span class="vv">rgba(0, 102, 204, 0.25)</span></td><td class="na">—</td></tr>
+</table></div>
+</div>
+
+<div class="card">
+<h2>为什么必须读绑定、不能反查色值<span>真实数据</span></h2>
+<p>同一份设计稿里，一个色值对应多个变量名是常态，不是偶发：</p>
+<table>
+<tr><th style="width:190px">解析值</th><th style="width:70px">变量数</th><th>候选变量名</th></tr>
+<tr><td class=mono><b>#EDEDED</b></td><td class=num>9</td><td><span class="chip">Button/Outline/Bg/Hover</span><span class="chip">Button/Outline/Border/Disabled</span><span class="chip">Button/Outline/Border/Loading</span><span class="chip">Button/Soft-Solid/Bg/Default</span><span class="chip">Button/Soft-Solid/Bg/Disabled</span><span class="chip">Button/Soft-Solid/Bg/Pressed</span><span class="chip">Button/Solid/Bg/Disabled</span><span class="chip">Button/Solid/Bg/Loading</span><span class="chip">Primitive/Neutral/30</span></td></tr>
+<tr><td class=mono><b>#0D0D0D</b></td><td class=num>8</td><td><span class="chip">Button/Outline/Border/Default</span><span class="chip">Button/Outline/Border/Hover</span><span class="chip">Button/Outline/Border/Pressed</span><span class="chip">Button/Solid/Bg/Default</span><span class="chip">Button/Solid/Bg/Pressed</span><span class="chip">Color/Primitive/Neutral/70</span><span class="chip">Primitive/Neutral/70</span><span class="chip">Text/Primary</span></td></tr>
+<tr><td class=mono><b>rgba(254, 254, 254, 0)</b></td><td class=num>5</td><td><span class="chip">Alpha/White/0</span><span class="chip">Button/Outline/Bg/Default</span><span class="chip">Button/Outline/Bg/Disabled</span><span class="chip">Button/Outline/Bg/Loading</span><span class="chip">Button/Outline/Bg/Pressed</span></td></tr>
+<tr><td class=mono><b>#CCCCCC</b></td><td class=num>4</td><td><span class="chip">Button/Soft-Solid/Bg/Hover</span><span class="chip">Color/Primitive/Neutral/40</span><span class="chip">Primitive/Neutral/40</span><span class="chip">Text/Disabled</span></td></tr>
+<tr><td class=mono><b>#FEFEFE</b></td><td class=num>3</td><td><span class="chip">Color/Primitive/Neutral/0</span><span class="chip">Primitive/Neutral/0</span><span class="chip">Text/Inverse/Primary</span></td></tr>
+<tr><td class=mono><b>#888888</b></td><td class=num>2</td><td><span class="chip">Color/Primitive/Neutral/50</span><span class="chip">Text/Tertiary</span></td></tr>
+<tr><td class=mono><b>#404040</b></td><td class=num>2</td><td><span class="chip">Color/Primitive/Neutral/60</span><span class="chip">Text/Secondary</span></td></tr>
+</table>
+<p style="margin-top:12px">按色值反查，只能得到一组候选，无法判定该取哪一个；而读绑定字段，答案由文件直接给出。这两个是<strong>本质区别</strong>，不是精度差异。</p>
+<div class="note"><b>还有一层坑：</b>同一个 primitive 在文件里存在<strong>两套命名</strong>——<code>Primitive/Neutral/70</code> 与 <code>Color/Primitive/Neutral/70</code> 指向同一个色值，绑定字段会返回哪一种取决于当初挂的是哪个。建议前端在比较时先做 normalize（剥掉开头的 collection 段）。本次 43 个变量名里，有 7 个带 <code>Color/</code> 前缀、36 个不带，<strong>同一 collection 内也不一致</strong>。</div>
+</div>
+
+<div class="card">
+<h2>复现命令<span>前端可直接跑</span></h2>
+<pre><span class="c"># 1. 令牌：MasterGo 头像 → 个人设置 → 安全设置 → 个人访问令牌</span>
+<span class="c">#    需团队/企业版；个人免费版 getDsl 会返回无权限</span>
+
+<span class="c"># 2. 跑（npx 模式，首次会下载约 20s）</span>
+MG_TOKEN=mg_xxx node extract.mjs \
+  --file 90715591055486 \
+  --layer 38623:91236 \
+  --out ./out
+
+<span class="c"># 想快一点，指向本地已装的包（跳过 npx）</span>
+MG_TOKEN=mg_xxx node extract.mjs --file ... --layer ... \
+  --entry ./node_modules/@mastergo/magic-mcp/dist/index.js</pre>
+<table>
+<tr><th style="width:230px">输出文件</th><th>用途</th></tr>
+<tr><td class="mono">dsl-raw.json</td><td>原始 DSL，排查任何“为什么是这个值”时的唯一事实源</td></tr>
+<tr><td class="mono">node-token-map.json</td><td>逐条明细：节点 ID / 图层路径 / 属性 / 变量名 / 值 / 状态</td></tr>
+<tr><td class="mono">variant-token-table.json</td><td>变体四轴 → 背景/文字/描边变量名 + 尺寸圆角内边距</td></tr>
+<tr><td class="mono">value-to-token.json</td><td>色值 → 候选变量名（仅作兜底与审计，不可用于唯一判定）</td></tr>
+<tr><td class="mono">variant-contract.json</td><td>精简变体契约：45 条 Variant×State → 背景/文字/描边变量名，可直接当查表字典</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>边界与坑<span>提前说清，避免误判成“工具能读全部”</span></h2>
+<ul class="clean">
+<li><span class="tag p1">覆盖</span><b>无变量名的 25 条不是失败，分四类：</b>①<code>#3D3D3D</code> / <code>#0D0D0D</code> 的状态枚举标题与分组标题（画布标注）；② 最外层 <code>Button</code> 容器的棋盘格渐变底（设计稿背景装饰）；③ <code>COMPONENT_SET</code> 外框的紫色高亮描边 <code>#8358F6</code>；④ Loading 图标内部两个小矩形，描边 paint 解析为空 <code>null</code>。<br><b>而 354 个 <code>COMPONENT</code> / <code>INSTANCE</code> 节点里，未绑变量的颜色是 0 处</b>——组件实体全部有变量名，问题只存在于画布标注与容器装饰上。</li>
+<li><span class="tag p1">模式</span><b>DSL 只返回当前模式的解析值，不带 Dark。</b>DSL 里 <code>mode</code> / <code>dark</code> 字段出现 0 次。<b>变量名本身是模式无关的</b>，双模式值需要另取一次变量清单（<code>tokens.json</code> 里 95 个变量都带 light/dark 两个值）。也就是说：<b>名字读 DSL，值读变量清单，两件事分开做。</b></li>
+<li><span class="tag p1">命名</span><b>token 字符串的 collection 前缀不一致</b>（7 带有 <code>Color/</code>、36 不带），比较前必须 normalize。</li>
+<li><span class="tag p2">门槛</span>需要个人访问令牌；<b>草稿箱里的文件读不到</b>，需移到团队空间或项目下。</li>
+<li><span class="tag p2">几何</span>本页 <code>layoutStyle</code> 的宽高是准的（Lg-Full 500×56、Lg-2 248、Lg-1 168），但同一通道在别处出现过 gap / 圆角的偏移；<b>几何建议用客户端 MCP 或设计稿标注复核，不要单独信 magic-mcp。</b></li>
+<li><span class="tag p2">漂移</span>规范文件名为“优化中”，token 改名后表会静默失效。<b>每次生成前跑一遍，别把表当静态资产提交进仓库。</b></li>
+</ul>
+</div>
+
+<div class="card">
+<h2>落到生成端<span>三段逻辑</span></h2>
+<pre><span class="c">// 1. 取节点上的绑定字段（有就直出，不做任何推断）</span>
+token = node._token || styles[node.fill]?.token
+
+<span class="c">// 2. 组件节点再叠变体表，补齐状态相关属性</span>
+key = [Variant, Breakpoint, Size, State].join(<span class="s">"|"</span>)
+hit = variantTable[key]        <span class="c">// bg / text / border 三处绑定</span>
+
+<span class="c">// 3. 未命中必须上报，不许静默降级成色值</span>
+<span class="k">if</span> (!token) report(<span class="s">"MISS"</span>, node.id, node.name)</pre>
+<div class="okbox" style="margin-top:12px"><b>判定原则一句话：</b>名字来自绑定字段，值来自变量清单，两者在生成端拼装。任何一步拿不到就报错退出，不猜。</div>
+</div>
+
+<div class="foot">数据源 MasterGo 90715591055486 / 38623:91236 · 取数 @mastergo/magic-mcp 0.2.10 · 统计口径：paint 引用逐条计数</div>
+</div></body></html>
