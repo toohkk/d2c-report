@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>同色多名 · 全量变量核查</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:400 14px/1.7 -apple-system,"PingFang SC","Helvetica Neue",sans-serif;color:#0D0D0D;background:#F7F7F7}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 28px 90px}
+h1{font-size:26px;font-weight:500;margin:0 0 8px;letter-spacing:-.3px}
+.sub{color:#6B6B6B;font-size:13px;margin-bottom:26px}
+.card{background:#fff;border:1px solid #E6E6E6;border-radius:12px;padding:22px 24px;margin-bottom:18px}
+.card h2{font-size:15px;font-weight:500;margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid #F0F0F0}
+.card h2 span{float:right;font-weight:400;color:#8A8A8A;font-size:12px}
+.meta{display:grid;grid-template-columns:120px 1fr;gap:6px 16px;font-size:13px}
+.meta dt{color:#8A8A8A}
+.meta dd{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;word-break:break-all}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi div{background:#FAFAFA;border:1px solid #EEE;border-radius:10px;padding:16px;text-align:center}
+.kpi b{display:block;font-size:25px;font-weight:500;line-height:1.2;color:#0066CC}
+.kpi b.ok{color:#1D9E75}
+.kpi b.warn{color:#C2410C}
+.kpi i{font-style:normal;font-size:12px;color:#8A8A8A}
+p{margin:0 0 12px}
+p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#F4F4F4;padding:1px 5px;border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-weight:500;color:#8A8A8A;padding:8px 10px;border-bottom:1px solid #EEE;font-size:12px}
+td{padding:8px 10px;border-bottom:1px solid #F5F5F5;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.num{font-family:ui-monospace,Menlo,monospace;color:#C2410C;font-weight:500;text-align:center}
+.num.blue{color:#0066CC}
+.tk{font-family:ui-monospace,Menlo,monospace;color:#0066CC;font-size:11.5px}
+.vv{font-family:ui-monospace,Menlo,monospace;color:#8A8A8A;font-size:11px}
+.chip{display:inline-block;background:#EEF4FB;color:#185FA5;border-radius:5px;padding:2px 7px;margin:2px 4px 2px 0;
+      font-family:ui-monospace,Menlo,monospace;font-size:11px}
+.chip.more{background:#F0F0F0;color:#777}
+.banner{background:#F6FBF8;border:1px solid #CFE9DD;border-radius:12px;padding:20px 24px;margin-bottom:18px}
+.banner h3{margin:0 0 8px;font-size:16px;font-weight:500;color:#1D9E75}
+.banner p{font-size:13.5px;color:#2C3A34}
+.note{background:#FFF9F5;border:1px solid #F6D8C4;border-radius:9px;padding:14px 16px;font-size:13px;margin:12px 0}
+.note b{color:#C2410C}
+.blue-box{background:#F4F8FD;border:1px solid #D6E4F5;border-radius:9px;padding:14px 16px;font-size:13px;margin:12px 0}
+.blue-box b{color:#185FA5}
+ul.clean{list-style:none;margin:0;padding:0}
+ul.clean li{padding:9px 0;border-bottom:1px solid #F5F5F5;font-size:13px}
+ul.clean li:last-child{border-bottom:none}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:4px;margin-right:8px;
+     font-family:ui-monospace,Menlo,monospace}
+.tag.p0{background:#FDECEA;color:#B3261E}
+.tag.p1{background:#FFF4E5;color:#B26A00}
+.tag.p2{background:#F0F0F0;color:#666}
+.tag.ok{background:#E8F6EF;color:#1D9E75}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #EEE;border-radius:10px;overflow:hidden}
+.compare>div{padding:18px 20px}
+.compare .bad{background:#FFF7F4}
+.compare .good{background:#F5FBF8;border-left:1px solid #EEE}
+.compare h4{margin:0 0 6px;font-size:13px;font-weight:500}
+.compare .bad h4{color:#C2410C}
+.compare .good h4{color:#1D9E75}
+.compare .big{font-family:ui-monospace,Menlo,monospace;font-size:22px;font-weight:500;margin:6px 0}
+.compare .bad .big{color:#C2410C}
+.compare .good .big{color:#1D9E75}
+.compare small{color:#8A8A8A;font-size:12px;display:block;line-height:1.6}
+.foot{color:#AAA;font-size:12px;text-align:center;margin-top:26px}
+@media(max-width:760px){.kpi{grid-template-columns:1fr 1fr}.compare{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+
+<h1>同色多名 · 全量变量核查</h1>
+<div class="sub">问题：一个颜色对应多个变量名，识别不准 · 核查范围：整个规范文件的全部颜色变量</div>
+
+<div class="card">
+<h2>核查口径</h2>
+<dl class="meta">
+<dt>变量来源</dt><dd>MasterGo 90715591055486「设计规范-优化中」· get_variables（本地变量，不含远程团队库）</dd>
+<dt>变量总量</dt><dd>171 个 / 7 个 collection（Color 96 · Spacing 22 · Layout 21 · Typography 13 · Motion 9 · Radius 7 · Shadow 3）</dd>
+<dt>本次核查对象</dt><dd>颜色类 96 个（COLOR 95 + PAINT 渐变 1）</dd>
+<dt>解析深度</dt><dd>全部 alias 链递归展开到 primitive 实际色值，0 条解析失败</dd>
+<dt>双模式</dt><dd>Light 36 个去重色值 · Dark 37 个去重色值</dd>
+<dt>实测样本</dt><dd>Button 规范页 988 条有效颜色引用（fill / textColor / strokeColor）</dd>
+</dl>
+</div>
+
+<div class="banner">
+<h3>结论：在取数链路上已经解决，而且必须这么解 —— 因为按值反查几乎必然出错</h3>
+<p><strong>读绑定：988 / 988 条完全正确（100%），零歧义。</strong>每个节点拿到的变量名由设计文件直接给出，同时其定义值与该节点渲染值逐条一致，说明拿到的是「正确的那个名字」，不是「碰巧存在的某个名字」。</p>
+<p style="margin-top:8px"><strong>按色值反查：969 / 988 条（98.1%）落在多义色值上</strong>，候选名有 2～15 个，无法判定取哪一个；只有 19 条（1.9%）能唯一反查。</p>
+<p style="margin-top:8px">也就是说，前端遇到的不是偶发误差，而是<strong>在现有取数方式下 98% 的引用都会错</strong>。</p>
+</div>
+
+<div class="card">
+<h2>关键数字<span>Light 单选口径</span></h2>
+<div class="kpi">
+<div><b>96</b><i>颜色变量总数</i></div>
+<div><b>36</b><i>Light 去重色值</i></div>
+<div><b class="warn">17</b><i>多义色值组</i></div>
+<div><b class="warn">77</b><i>处于多义组的变量（80.2%）</i></div>
+</div>
+<p style="margin-top:14px;font-size:13px">另一侧：Dark 有 37 个去重色值、17 个多义组；40 个变量在两套模式下取值相同（例如所有 <code>Alpha/*</code> 与两个模式共用的中性色），56 个随模式变化。</p>
+<p style="font-size:13px">变量名本身<strong>零重名</strong>：96 个名字两两不同，所以「名字 → 变量」是单射，唯一性只在反向（值 → 名字）丢失。</p>
+</div>
+
+<div class="card">
+<h2>多义色值全表<span>17 组 / 覆盖 77 个变量</span></h2>
+<table>
+<tr><th style="width:210px">Light 色值</th><th style="width:64px">名字数</th><th>对应变量名</th></tr>
+<tr><td class="mono"><b>#ededed</b></td><td class="num">15</td><td><span class="chip">Background/Selected</span><span class="chip">Border/Control/Default</span><span class="chip">Border/Control/Disabled</span><span class="chip">Button/Outline/Bg/Hover</span><span class="chip">Button/Outline/Border/Disabled</span><span class="chip">Button/Outline/Border/Loading</span><span class="chip">Button/Soft-Solid/Bg/Default</span><span class="chip">Button/Soft-Solid/Bg/Disabled</span><span class="chip">Button/Soft-Solid/Bg/Loading</span><span class="chip">Button/Soft-Solid/Bg/Pressed</span><span class="chip">Button/Solid/Bg/Disabled</span><span class="chip">Button/Solid/Bg/Loading</span><span class="chip">Divider/Divider</span><span class="chip">Icon/Gray-30-default</span><span class="chip">Primitive/Neutral/30</span></td></tr>
+<tr><td class="mono"><b>#0d0d0d</b></td><td class="num">13</td><td><span class="chip">Background/Inverse</span><span class="chip">Button/Outline/Border/Default</span><span class="chip">Button/Outline/Border/Hover</span><span class="chip">Button/Outline/Border/Pressed</span><span class="chip">Button/Solid/Bg/Default</span><span class="chip">Button/Solid/Bg/Pressed</span><span class="chip">Field/Border/Focus</span><span class="chip">Icon/Black-default</span><span class="chip">Icon/Gray-30-hover</span><span class="chip">Icon/Transparent-default</span><span class="chip">Primitive/Neutral/70</span><span class="chip">Semantic/Surface/SiteFooter</span><span class="chip">Text/Primary</span></td></tr>
+<tr><td class="mono"><b>#cccccc</b></td><td class="num">9</td><td><span class="chip">Background/Emphasized</span><span class="chip">Button/Soft-Solid/Bg/Hover</span><span class="chip">Divider/Strong</span><span class="chip">Field/Border/Default</span><span class="chip">Field/Border/Disabled</span><span class="chip">Icon/Gray-40-default</span><span class="chip">Primitive/Neutral/40</span><span class="chip">Text/Disabled</span><span class="chip">Text/Quaternary</span></td></tr>
+<tr><td class="mono"><b>#fefefe</b></td><td class="num">5</td><td><span class="chip">Background/Elevated</span><span class="chip">Background/Page</span><span class="chip">Icon/Gray-40-hover</span><span class="chip">Primitive/Neutral/0</span><span class="chip">Text/Inverse/Primary</span></td></tr>
+<tr><td class="mono"><b>rgba(254,254,254,0)</b></td><td class="num">5</td><td><span class="chip">Alpha/White/0</span><span class="chip">Button/Outline/Bg/Default</span><span class="chip">Button/Outline/Bg/Disabled</span><span class="chip">Button/Outline/Bg/Loading</span><span class="chip">Button/Outline/Bg/Pressed</span></td></tr>
+<tr><td class="mono"><b>#888888</b></td><td class="num">5</td><td><span class="chip">Field/Border/Hover</span><span class="chip">Icon/Black-hover</span><span class="chip">Primitive/Neutral/50</span><span class="chip">Text/Placeholder</span><span class="chip">Text/Tertiary</span></td></tr>
+<tr><td class="mono"><b>rgba(254,254,254,0.25)</b></td><td class="num">3</td><td><span class="chip">Alpha/White/25</span><span class="chip">Text/Inverse/Disabled</span><span class="chip">Text/Inverse/Quaternary</span></td></tr>
+<tr><td class="mono"><b>rgba(13,13,13,0.5)</b></td><td class="num">3</td><td><span class="chip">Alpha/Black/50</span><span class="chip">Icon/Transparent-hover</span><span class="chip">Overlay/Modal</span></td></tr>
+<tr><td class="mono"><b>rgba(13,13,13,0.8)</b></td><td class="num">3</td><td><span class="chip">Alpha/Black/80</span><span class="chip">Background/Toast</span><span class="chip">Button/Solid/Bg/Hover</span></td></tr>
+<tr><td class="mono"><b>rgba(254,254,254,0.35)</b></td><td class="num">2</td><td><span class="chip">Alpha/White/35</span><span class="chip">Text/Inverse/Placeholder</span></td></tr>
+<tr><td class="mono"><b>rgba(254,254,254,0.6)</b></td><td class="num">2</td><td><span class="chip">Alpha/White/60</span><span class="chip">Text/Inverse/Tertiary</span></td></tr>
+<tr><td class="mono"><b>rgba(254,254,254,0.8)</b></td><td class="num">2</td><td><span class="chip">Alpha/White/80</span><span class="chip">Text/Inverse/Secondary</span></td></tr>
+<tr><td class="mono"><b>rgba(238,74,74,0.5)</b></td><td class="num">2</td><td><span class="chip">Alpha/Red/50-50</span><span class="chip">Field/Border/Invalid-Hover</span></td></tr>
+<tr><td class="mono"><b>#404040</b></td><td class="num">2</td><td><span class="chip">Primitive/Neutral/60</span><span class="chip">Text/Secondary</span></td></tr>
+<tr><td class="mono"><b>#f9f9f9</b></td><td class="num">2</td><td><span class="chip">Background/Subtle</span><span class="chip">Primitive/Neutral/10</span></td></tr>
+<tr><td class="mono"><b>#f5f5f5</b></td><td class="num">2</td><td><span class="chip">Background/Muted</span><span class="chip">Primitive/Neutral/20</span></td></tr>
+<tr><td class="mono"><b>#ee4a4a</b></td><td class="num">2</td><td><span class="chip">Field/Border/Invalid</span><span class="chip">Primitive/Red/50</span></td></tr>
+</table>
+<div class="note"><b>看清一件事：</b><code>#EDEDED</code> 同时是 <code>Button/Solid/Bg/Disabled</code>、<code>Button/Soft-Solid/Bg/Default</code>、<code>Background/Selected</code>、<code>Icon/Gray-30-default</code> 等 15 个语义场景的颜色。<b>这不是规范写错，而是语义层应有的样子</b>——同一个灰在不同场景承担不同含义，将来改版时可能只改其中一个。所以「让一个值只对应一个名字」不是解法，反而会毁掉语义层。</div>
+</div>
+
+<div class="card">
+<h2>能唯一反查的只有 19 个色值<span>全是原始色与 alpha，没有一个语义名</span></h2>
+<table>
+<tr><th style="width:200px">色值</th><th>唯一变量</th><th style="width:200px">色值</th><th>唯一变量</th></tr>
+<tr><td class="mono">#0066cc</td><td class="tk">Primitive/Blue/60</td><td class="mono">rgba(13,13,13,0.15)</td><td class="tk">Alpha/Black/15</td></tr>
+<tr><td class="mono">#0071e3</td><td class="tk">Primitive/Blue/50</td><td class="mono">rgba(13,13,13,0.25)</td><td class="tk">Alpha/Black/25</td></tr>
+<tr><td class="mono">#029e78</td><td class="tk">Primitive/Green/50</td><td class="mono">rgba(13,13,13,0.95)</td><td class="tk">Alpha/Black/95</td></tr>
+<tr><td class="mono">#ff5aa3</td><td class="tk">Gradient</td><td class="mono">rgba(237,237,237,0.9)</td><td class="tk">Background/MediaDropzone</td></tr>
+<tr><td class="mono">rgba(0,102,204,0.25)</td><td class="tk">Alpha/Blue/60-25</td><td class="mono">rgba(238,74,74,0.25)</td><td class="tk">Alpha/Red/50-25</td></tr>
+<tr><td class="mono">rgba(0,102,204,0.5)</td><td class="tk">Alpha/Blue/60-50</td><td class="mono">rgba(254,254,254,0.05)</td><td class="tk">Alpha/White/05</td></tr>
+<tr><td class="mono">rgba(0,102,204,0.8)</td><td class="tk">Alpha/Blue/60-80</td><td class="mono">rgba(254,254,254,0.1)</td><td class="tk">Alpha/White/10</td></tr>
+<tr><td class="mono">rgba(0,113,227,0.25)</td><td class="tk">Alpha/Blue/50-25</td><td class="mono">rgba(254,254,254,0.15)</td><td class="tk">Alpha/White/15</td></tr>
+<tr><td class="mono">rgba(0,113,227,0.5)</td><td class="tk">Alpha/Blue/50-50</td><td class="mono">rgba(254,254,254,0.92)</td><td class="tk">Semantic/Surface/PageHeader</td></tr>
+<tr><td class="mono">rgba(0,113,227,0.8)</td><td class="tk">Alpha/Blue/50-80</td><td></td><td></td></tr>
+</table>
+<p style="margin-top:12px">这 19 个全部是 <code>Primitive/*</code> 与 <code>Alpha/*</code> 这类基础层变量，以及两个独立值（<code>Gradient</code>、<code>Background/MediaDropzone</code>）。<strong>凡是语义层变量（Button/* · Text/* · Icon/* · Background/* · Border/* · Field/*），一个都无法靠色值反查。</strong></p>
+</div>
+
+<div class="card">
+<h2>换成 (Light, Dark) 复合键也救不回来<span>排除「信息不足」这个借口</span></h2>
+<p>有人会想：只给一个模式的值不够，那双模式一起给总能唯一了吧。实测不行——96 个变量合并后只有 64 个不同组合，仍有 14 个多义组覆盖 46 个变量（47.9%）。</p>
+<table>
+<tr><th style="width:190px">Light</th><th style="width:210px">Dark</th><th style="width:60px">名字数</th><th>对应变量名</th></tr>
+<tr><td class="mono">#ededed</td><td class="mono">rgba(254,254,254,0.25)</td><td class="num">10</td><td><span class="chip">Background/Selected</span><span class="chip">Button/Outline/Border/Disabled</span><span class="chip">Button/Outline/Border/Loading</span><span class="chip">Button/Soft-Solid/Bg/Default</span><span class="chip more">+6</span></td></tr>
+<tr><td class="mono">rgba(254,254,254,0)</td><td class="mono">rgba(254,254,254,0)</td><td class="num">5</td><td><span class="chip">Alpha/White/0</span><span class="chip">Button/Outline/Bg/Default</span><span class="chip">Button/Outline/Bg/Disabled</span><span class="chip">Button/Outline/Bg/Loading</span><span class="chip more">+1</span></td></tr>
+<tr><td class="mono">#0d0d0d</td><td class="mono">#fefefe</td><td class="num">5</td><td><span class="chip">Background/Inverse</span><span class="chip">Icon/Black-default</span><span class="chip">Icon/Gray-30-hover</span><span class="chip">Icon/Transparent-default</span><span class="chip more">+1</span></td></tr>
+<tr><td class="mono">#cccccc</td><td class="mono">rgba(254,254,254,0.25)</td><td class="num">4</td><td><span class="chip">Field/Border/Default</span><span class="chip">Field/Border/Disabled</span><span class="chip">Text/Disabled</span><span class="chip">Text/Quaternary</span></td></tr>
+<tr><td class="mono">#0d0d0d</td><td class="mono">rgba(254,254,254,0.8)</td><td class="num">4</td><td><span class="chip">Button/Outline/Border/Default</span><span class="chip">Button/Outline/Border/Hover</span><span class="chip">Button/Outline/Border/Pressed</span><span class="chip">Field/Border/Focus</span></td></tr>
+<tr><td class="mono">rgba(238,74,74,0.5)</td><td class="mono">rgba(238,74,74,0.5)</td><td class="num">2</td><td><span class="chip">Alpha/Red/50-50</span><span class="chip">Field/Border/Invalid-Hover</span></td></tr>
+</table>
+<p style="margin-top:12px">原因很直接：一批语义变量在设计上就是<strong>指向同一对颜色</strong>，只是语义不同。信息量再增加也不会让它们分开，因为它们在数值上确实相等。</p>
+</div>
+
+<div class="card">
+<h2>两条路径实测对比<span>同一批 988 条引用</span></h2>
+<div class="compare">
+<div class="bad">
+<h4>按色值反查</h4>
+<div class="big">98.1% 会错</div>
+<small>969 / 988 条落在多义色值上<br>候选名 2～15 个，无判定依据<br>只有 19 条能唯一命中</small>
+</div>
+<div class="good">
+<h4>读绑定字段</h4>
+<div class="big">100% 正确</div>
+<small>988 / 988 条名字全部命中变量清单<br>988 条定义值 = 节点渲染值<br>0 条歧义、0 条命名不一致</small>
+</div>
+</div>
+<div class="blue-box" style="margin-top:14px"><b>第二列才是关键证据：</b>如果只验证「能拿到名字」，那名字可能是错的；这里额外验证了「这个名字的定义值与该节点实际渲染的颜色完全相同」，988 条全部成立。<b>名字与值互相印证，说明读到的是真实绑定，不是推测。</b></div>
+</div>
+
+<div class="card">
+<h2>还没覆盖到的部分<span>如实交代，避免下次被当成回退</span></h2>
+<ul class="clean">
+<li><span class="tag p1">已量化</span><b>25 条颜色没有变量名</b>（占 2.5%）。逐条查过：画布状态标注文字、棋盘格背景装饰、COMPONENT_SET 外框高亮、Loading 图标内两个空描边矩形。<b>不是识别失败，是这些图层本来就没绑变量</b>，读任何接口都拿不到名字，这类只能落色值并打标记。</li>
+<li><span class="tag p1">风险</span><b>实例上覆盖过颜色（override）或 detach 的图层</b>：绑定还在则能读到名字，但读到的可能是组件默认值而非实例覆盖值。本次样本里未发现这种情况（988 条值全部一致），但要在每次生成时跑一致性校验，不一致就打 <code>OVERRIDE</code>，不能静默采信。</li>
+<li><span class="tag p2">注意</span><b>DSL 只给当前模式的解析值</b>，Dark 值必须另取变量清单。名字与模式无关，值必须按模式取——两件事分开做，不要用 DSL 的值去代表 Dark。</li>
+<li><span class="tag p2">注意</span><b>变量名可能带 collection 前缀</b>（本次 232 条引用带 <code>Color/</code>，涉及 7 / 43 个变量名），比较前先 normalize，否则会出现「名字找到了但比对不上」的假故障。</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>给前端的三条落地约定<span>照着做就不会再出现这个问题</span></h2>
+<ul class="clean">
+<li><span class="tag ok">1</span><b>名字只从绑定字段取。</b><code>node._token</code>，或 <code>styles[node.fill].token</code>；找不到就报 <code>MISS</code> 并退出，<b>禁止</b>回落到「最接近的色值」或「第一个匹配的名字」。</li>
+<li><span class="tag ok">2</span><b>色值反查表只用于审计，不用于生成。</b>它可以回答「这个值在规范里可能是什么」，但永远不能回答「这个值在这里是什么」。</li>
+<li><span class="tag ok">3</span><b>每次生成跑一次三项校验：</b>名字是否在变量清单里 · 定义值是否等于渲染值 · 模式是否与目标一致。任一不过就阻断，不要产出带猜测的代码。</li>
+</ul>
+</div>
+
+<div class="foot">数据源 MasterGo 90715591055486 · 变量 171 / 颜色 96 · 引用样本 988 条 · alias 递归展开至 primitive</div>
+</div></body></html>
