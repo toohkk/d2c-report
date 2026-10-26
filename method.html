@@ -66,6 +66,11 @@ ul.clean li b{font-weight:500}
 .foot{color:#AAA;font-size:12px;text-align:center;margin-top:26px}
 </style></head><body><div class="wrap">
 
+<div style="border:1px solid #C13B2E;border-left:4px solid #C13B2E;background:#FCF6F4;padding:14px 16px;margin:0 0 26px;line-height:1.75">
+<div style="font:600 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#C13B2E;margin-bottom:8px">2026-10-26 更正</div>
+<div style="font-size:14px">本文下方「落到生成端」给出的第一行伪码 <code>token = node._token || styles[node.fill]?.token</code> <b>对文字节点是错的</b>。文字实际显示用 <code>textColor</code>，与 <code>fill</code> 的绑定经常不同，Button 页 193 个文字节点照此行取色会在夜间出错。正确写法与复核数据见 <b>文字颜色-复核与更正</b> 一节；脚本已加入 <code>role</code> 字段与 <code>text-color-audit.json</code> 防止误用。</div>
+</div>
+
 <h1>变量名是怎么拿到的</h1>
 <div class="sub">不靠色值反查，直接读设计稿里的绑定字段 · 给前端的技术说明</div>
 
@@ -246,7 +251,12 @@ MG_TOKEN=mg_xxx node extract.mjs --file ... --layer ... \
 <div class="card">
 <h2>落到生成端<span>三段逻辑</span></h2>
 <pre><span class="c">// 1. 取节点上的绑定字段（有就直出，不做任何推断）</span>
-token = node._token || styles[node.fill]?.token
+<span class="c">// ⚠ 文字节点不能走这一行：文字显示用 textColor，与 fill 的绑定经常不同</span>
+<span class="k">if</span> (node.type === <span class="s">'TEXT'</span>) {
+  token = styles[node.textColor[0].color]?.token   <span class="c">// 分段时逐段取</span>
+} <span class="k">else</span> {
+  token = node._token || styles[node.fill]?.token
+}
 
 <span class="c">// 2. 组件节点再叠变体表，补齐状态相关属性</span>
 key = [Variant, Breakpoint, Size, State].join(<span class="s">"|"</span>)
