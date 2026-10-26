@@ -67,6 +67,11 @@ ul.clean li:last-child{border-bottom:none}
 @media(max-width:760px){.kpi{grid-template-columns:1fr 1fr}.compare{grid-template-columns:1fr}}
 </style></head><body><div class="wrap">
 
+<div style="border:1px solid #C13B2E;border-left:4px solid #C13B2E;background:#FCF6F4;padding:14px 16px;margin:0 0 26px;line-height:1.75">
+<div style="font:600 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#C13B2E;margin-bottom:8px">2026-10-26 补充</div>
+<div style="font-size:14px">本文结论（读绑定 100% 正确、色值反查 98% 会错）不变，但页末第 1 条约定写漏了一件事：<b>文字节点必须读 <code>textColor</code>，不能读 <code>_token</code>/<code>fill</code></b>。两者经常绑不同变量且日间同色，Button 页 193 个文字节点照旧写法会在夜间取错。另外「988 条 100% 一致」只证明值与名字自洽，<b>证明不了属性选对</b>。详见 <b>文字颜色-复核与更正</b>。</div>
+</div>
+
 <h1>同色多名 · 全量变量核查</h1>
 <div class="sub">问题：一个颜色对应多个变量名，识别不准 · 核查范围：整个规范文件的全部颜色变量</div>
 
@@ -189,7 +194,7 @@ ul.clean li:last-child{border-bottom:none}
 <div class="card">
 <h2>给前端的三条落地约定<span>照着做就不会再出现这个问题</span></h2>
 <ul class="clean">
-<li><span class="tag ok">1</span><b>名字只从绑定字段取。</b><code>node._token</code>，或 <code>styles[node.fill].token</code>；找不到就报 <code>MISS</code> 并退出，<b>禁止</b>回落到「最接近的色值」或「第一个匹配的名字」。</li>
+<li><span class="tag ok">1</span><b>名字只从绑定字段取，且要选对属性。</b>文字节点读 <code>styles[node.textColor[0].color].token</code>（分段逐段取）；非文字节点读 <code>node._token</code> 或 <code>styles[node.fill].token</code>；描边单独读 <code>strokeColor</code>。找不到就报 <code>MISS</code> 并退出，<b>禁止</b>回落到「最接近的色值」「第一个匹配的名字」或另一个属性的 token。</li>
 <li><span class="tag ok">2</span><b>色值反查表只用于审计，不用于生成。</b>它可以回答「这个值在规范里可能是什么」，但永远不能回答「这个值在这里是什么」。</li>
 <li><span class="tag ok">3</span><b>每次生成跑一次三项校验：</b>名字是否在变量清单里 · 定义值是否等于渲染值 · 模式是否与目标一致。任一不过就阻断，不要产出带猜测的代码。</li>
 </ul>
